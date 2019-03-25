@@ -1,9 +1,10 @@
 package skeleton;
 
 public class Tile {
-    private String type;
-    private String position;
-    private String orientation;
+
+    private String placement;
+
+    public String fixOrientation(){return "";}
 
     public boolean isLegalPlacement() {return false;}
 }

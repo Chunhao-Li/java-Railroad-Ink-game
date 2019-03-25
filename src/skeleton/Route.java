@@ -1,6 +1,8 @@
 package skeleton;
 
 public class Route {
+
+
     public int countConnectedExits() {return 0;}
 
     /**
@@ -19,4 +21,9 @@ public class Route {
      * @return the number of grids the longest railway covers
      */
     public int countLongestRailway() {return 0;}
+
+    /**
+     * @return the number of tiles in the centre grids
+     */
+    public int countCentreGrids() {return 0;}
 }
