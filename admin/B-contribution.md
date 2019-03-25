@@ -2,6 +2,6 @@ We declare that the work toward our submission of Stage B was distributed among 
 
 * u6527752 40
 * u6502811 30
-* u0234567 30
+* u6720989 30
 
-Signed: Chunhao Li (u6527752), Mingchao Sima (u6502811), and Sue Black (u0234567)
+Signed: Chunhao Li (u6527752), Mingchao Sima (u6502811), and Haoyan Liu (u6720989)
