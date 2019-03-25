@@ -5,5 +5,6 @@ public class Main {
         A a = new A();
         B b = new B();
         b.toString();
+        a.toString();
     }
 }
