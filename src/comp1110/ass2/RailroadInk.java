@@ -15,7 +15,19 @@ public class RailroadInk {
      */
     public static boolean isTilePlacementWellFormed(String tilePlacementString) {
         // FIXME Task 2: determine whether a tile placement is well-formed
-        return false;
+        if (tilePlacementString.length() != 5) {return false;}
+        if (!"ABS".contains(""+tilePlacementString.charAt(0))) {return false;}
+        if (tilePlacementString.charAt(0) == 'B') {
+            if (tilePlacementString.charAt(1) < '0' || tilePlacementString.charAt(1) > '2') {return false;}
+        }
+        else {
+            if (tilePlacementString.charAt(1) < '0' || tilePlacementString.charAt(1) > '6') {return false;}
+        }
+        if (tilePlacementString.charAt(2) < 'A' || tilePlacementString.charAt(2) > 'G') {return false;}
+        if (tilePlacementString.charAt(3) < '0' || tilePlacementString.charAt(3) > '6') {return false;}
+        if (tilePlacementString.charAt(4) < '0' || tilePlacementString.charAt(4) > '7') {return false;}
+
+        return true;
     }
 
     /**
