@@ -41,7 +41,17 @@ public class RailroadInk {
      */
     public static boolean isBoardStringWellFormed(String boardString) {
         // FIXME Task 3: determine whether a board string is well-formed
-        return false;
+        if (boardString == null || boardString.length() == 0) {return false;}
+        if (boardString.length() % 5 != 0 || boardString.length() > 155) {return false;}
+        int count = 0;
+        for (int i = 0; i + 5 <= boardString.length(); i = i + 5) {
+            String tilePlacement = boardString.substring(i, i+5);
+            if (!isTilePlacementWellFormed(tilePlacement)) {return false;}
+            if (boardString.charAt(i) == 'S') {count++;}
+            if (count > 3) {return false;}
+        }
+        return true;
+
     }
 
 
@@ -80,6 +90,75 @@ public class RailroadInk {
     public static boolean isValidPlacementSequence(String boardString) {
         // FIXME Task 6: determine whether the given placement sequence is valid
         return false;
+    }
+
+
+    /**
+     * Fix orientations of tiles except B1 which can be divided into 5 groups
+     * - S0, S1, B0: 4 -> 0, 5 -> 1, 6 -> 2, 7 -> 3
+     * - S2, S3: (1 - 7) -> 0
+     * - S4, A0, A5: 4 -> 1, 5 -> 2, 6 -> 3, 7 -> 0,
+     * - S5, A1, A4, B2: 2,4,6 -> 0, 3,5,7 -> 1
+     * - A2, A3: 4 -> 2, 5 -> 3, 6 -> 0, 7 -> 1
+     * @param tilePlacement is a well-formed 5 characters string
+     * @return string after fixing orientations
+     */
+    public static String fixOrientations(String tilePlacement) {
+        StringBuilder input = new StringBuilder(tilePlacement);
+        char oldOrientation = input.charAt(4);
+        CharSequence tile = input.subSequence(0, 2);
+        if ("S0S1B0".contains(tile)) {
+            switch (oldOrientation) {
+                case '4': input.replace(4, 5, "0");
+                    break;
+                case '5': input.replace(4, 5, "1");
+                    break;
+                case '6': input.replace(4, 5, "2");
+                    break;
+                case '7': input.replace(4, 5, "3");
+                    break;
+            }
+        }
+
+        if ("S2S3".contains(tile) && oldOrientation != '0') {
+            input.replace(4, 5, "0");
+        }
+
+        if ("S4A0A5".contains(tile)) {
+            switch (oldOrientation) {
+                case '4': input.replace(4, 5, "1");
+                    break;
+                case '5': input.replace(4, 5, "2");
+                    break;
+                case '6': input.replace(4, 5, "3");
+                    break;
+                case '7': input.replace(4, 5, "0");
+                    break;
+            }
+        }
+
+        if ("S5A1A4B2".contains(tile)) {
+            if ("246".contains(oldOrientation+"")) {
+                input.replace(4, 5, "0");
+            }
+            if ("357".contains(oldOrientation+"")) {
+                input.replace(4, 5, "1");
+            }
+        }
+
+        if ("A2A3".contains(tile)) {
+            switch (oldOrientation) {
+                case '4': input.replace(4, 5, "2");
+                    break;
+                case '5': input.replace(4, 5, "3");
+                    break;
+                case '6': input.replace(4, 5, "0");
+                    break;
+                case '7': input.replace(4, 5, "1");
+                    break;
+            }
+        }
+        return input.toString();
     }
 
     /**

@@ -1,7 +1,7 @@
 We declare that the work toward our submission of Stage C was distributed among the group members as follows:
 
-* u2345678 30
-* u3456789 40
-* u0234567 30
+* u6527752 40
+* u6502811 30
+* u6720989 30
 
-Signed: Mary Jones (u2345678), Bob Smith (u3456789), and Sue Black (u0234567)
+Signed: Chunhao Li (u6527752), Mingchao Sima (u6502811), and Haoyan Liu (u6720989)
