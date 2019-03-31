@@ -72,8 +72,6 @@ public class RailroadInk {
 
     public static boolean areConnectedNeighbours(String tilePlacementStringA, String tilePlacementStringB) {
         // FIXME Task 5: determine whether neighbouring placements are connected
-
-
         if (tilePlacementStringA.length() < 5 || tilePlacementStringB.length() < 5) {return false;}
         char[] a = tilePlacementStringA.toCharArray();
         char[] b = tilePlacementStringB.toCharArray();
@@ -109,7 +107,7 @@ public class RailroadInk {
      * @param orientation a char which is in the range '0'-'7'
      * @return a string which represents the shape of the tile
      */
-    public static String getShape(char[] tilePlacement, char orientation) {
+    private static String getShape(char[] tilePlacement, char orientation) {
         String[] shapeA = {"rr##", "r#r#", "r#rr", "h#hh", "h#h#", "hh##"}; // shapes of A with orientation '0'
         String[] shapeB = {"h#r#", "h##r", "hrhr"};
         String[] shapeS = {"hhrh", "hrrr", "hhhh", "rrrr", "hhrr", "hrhr"};
@@ -131,7 +129,7 @@ public class RailroadInk {
         }
         String flipped = String.valueOf(shape);
         int offset = orientation > '3' ?(int) orientation  - '0' - 4 : (int) orientation - '0';
-        return flipped.substring(offset, flipped.length()) + flipped.substring(0, offset);
+        return flipped.substring(offset) + flipped.substring(0, offset);
     }
 
     /**
@@ -178,33 +176,43 @@ public class RailroadInk {
 
     }
 
-    public static boolean isInvalidExitConnection(String tilePlacement) {
+    /**
+     * This method is to check whether a tile's connection to the exit is invalid
+     * @param tilePlacement a string contains 5 characters
+     * @return boolean
+     */
+    private static boolean isInvalidExitConnection(String tilePlacement) {
         char[] a = tilePlacement.toCharArray();
 
         if ((a[2] == 'A' || a[2] == 'G') && (a[3] == '1' || a[3] == '3' || a[3] == '5')) {
-            if (!isExitConnected(tilePlacement)) {return true;}
+            return (!isExitConnected(tilePlacement));
 
         }
         else if ((a[2] == 'B' || a[2] == 'D' || a[2] == 'F') && (a[3] == '0' || a[3] == '6')) {
-            if (!isExitConnected(tilePlacement)) {return true;}
+            return (!isExitConnected(tilePlacement));
         }
         return false;
 
 
     }
 
-    public static boolean isExitConnected(String tilePlacement) {
+    /**
+     * This method is to check whether a tile is legally connected to an exit
+     * @param tilePlacement a string of 5 characters
+     * @return boolean
+     */
+    private static boolean isExitConnected(String tilePlacement) {
         char[] a = tilePlacement.toCharArray();
         char[] aShape = getShape(a, a[4]).toCharArray();
 
         if ((a[2] == 'A' || a[2] == 'G') && (a[3] == '1' || a[3] == '3' || a[3] == '5')) {
             if ((a[3] == '1' || a[3] =='5') && aShape[a[2] == 'A' ? 0 : 2] == 'h') {return true;}
-            else if (a[3] == '3' && aShape[a[2] == 'A' ? 0 : 2] == 'r') {return true;}
+            else {return (a[3] == '3' && aShape[a[2] == 'A' ? 0 : 2] == 'r');}
         }
 
         else if ((a[2] == 'B' || a[2] == 'D' || a[2] == 'F') && (a[3] == '0' || a[3] == '6')) {
             if ((a[2] == 'B' || a[2] == 'F') && aShape[a[3] == '0' ? 1 : 3] == 'r') {return true;}
-            else if (a[2] == 'D' && aShape[a[3] == '0' ? 1 : 3] == 'h') {return true;}
+            else {return (a[2] == 'D' && aShape[a[3] == '0' ? 1 : 3] == 'h');}
         }
 
         return false;
