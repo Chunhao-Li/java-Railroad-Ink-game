@@ -168,7 +168,7 @@ public class RailroadInk {
                     placed[i] = tiles[i];
                     continue;
                 }
-                if (areConnectedNeighbours(tiles[i], placed[j])) {
+                if (areConnectedNeighbours(tiles[i], placed[j]) && !isInvalidExitConnection(tiles[i])) {
                     placed[i] = tiles[i];
                 }
             }
@@ -176,6 +176,19 @@ public class RailroadInk {
         return Arrays.equals(tiles, placed);
 
 
+    }
+
+    public static boolean isInvalidExitConnection(String tilePlacement) {
+        char[] a = tilePlacement.toCharArray();
+
+        if ((a[2] == 'A' || a[2] == 'G') && (a[3] == '1' || a[3] == '3' || a[3] == '5')) {
+            if (!isExitConnected(tilePlacement)) {return true;}
+
+        }
+        else if ((a[2] == 'B' || a[2] == 'D' || a[2] == 'F') && (a[3] == '0' || a[3] == '6')) {
+            if (!isExitConnected(tilePlacement)) {return true;}
+        }
+        return false;
 
 
     }
