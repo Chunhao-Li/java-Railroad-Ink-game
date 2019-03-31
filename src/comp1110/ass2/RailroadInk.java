@@ -1,5 +1,8 @@
 package comp1110.ass2;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public class RailroadInk {
     /**
      * Determine whether a tile placement string is well-formed:
@@ -66,9 +69,69 @@ public class RailroadInk {
      *
      * @return true if the placements are connected neighbours
      */
+
     public static boolean areConnectedNeighbours(String tilePlacementStringA, String tilePlacementStringB) {
         // FIXME Task 5: determine whether neighbouring placements are connected
-        return false;
+
+
+        if (tilePlacementStringA.length() < 5 || tilePlacementStringB.length() < 5) {return false;}
+        char[] a = tilePlacementStringA.toCharArray();
+        char[] b = tilePlacementStringB.toCharArray();
+        if (Math.abs(a[2] - b[2]) > 1 || Math.abs(a[3] - b[3]) > 1) {return false;}
+        if (a[2] == b[2] && a[3] == b[3]) {return false;}
+        if (Math.abs(a[2] - b[2]) == 1 && Math.abs(a[3] - b[3]) == 1) {return false;}
+        char[] aShape = getShape(a, a[4]).toCharArray();
+        char[] bShape = getShape(b, b[4]).toCharArray();
+
+        if (a[2] > b[2]) {
+            if (!(aShape[0] == bShape[2] && aShape[0] != '#')) {return false;}
+        }
+        if (a[2] < b[2]) {
+            if (!(aShape[2] == bShape[0] && aShape[2] != '#')) {return false;}
+        }
+        if (a[3] > b[3]) {
+            if (!(aShape[1] == bShape[3] && aShape[1] != '#')) {return false;}
+        }
+        if (a[3] < b[3]) {
+            if (!(aShape[3] == bShape[1] && aShape[3] != '#')) {return false;}
+        }
+        return true;
+
+
+    }
+
+    /**
+     * This function is to get the shape of the tile. Shape is a string contains 4 characters.
+     * h: represents highway edge
+     * r: represents railway edge
+     * #: represents blank edge
+     * @param tilePlacement a char array of tile placement which contains 5 elements.
+     * @param orientation a char which is in the range '0'-'7'
+     * @return a string which represents the shape of the tile
+     */
+    public static String getShape(char[] tilePlacement, char orientation) {
+        String[] shapeA = {"rr##", "r#r#", "r#rr", "h#hh", "h#h#", "hh##"}; // shapes of A with orientation '0'
+        String[] shapeB = {"h#r#", "h##r", "hrhr"};
+        String[] shapeS = {"hhrh", "hrrr", "hhhh", "rrrr", "hhrr", "hrhr"};
+        char[] shape;
+        if (tilePlacement[0] == 'A') {
+            shape = shapeA[tilePlacement[1] - '0'].toCharArray();
+        }
+        else if (tilePlacement[0] == 'B') {
+            shape = shapeB[tilePlacement[1] - '0'].toCharArray();
+        }
+        else {
+            shape = shapeS[tilePlacement[1] - '0'].toCharArray();
+        }
+
+        if (orientation > '3') {
+            char temp = shape[3];
+            shape[3] = shape[1];
+            shape[1] = temp;
+        }
+        String flipped = String.valueOf(shape);
+        int offset = orientation > '3' ?(int) orientation  - '0' - 4 : (int) orientation - '0';
+        return flipped.substring(offset, flipped.length()) + flipped.substring(0, offset);
     }
 
     /**
@@ -89,77 +152,53 @@ public class RailroadInk {
      */
     public static boolean isValidPlacementSequence(String boardString) {
         // FIXME Task 6: determine whether the given placement sequence is valid
+        String[] tiles = new String[boardString.length() / 5];
+        String[] placed = new String[tiles.length];
+//        ArrayList<String> tiles = new ArrayList<>();
+        for (int i = 0; i+5 <= boardString.length() ; i = i+5) {
+            tiles[i/5] = boardString.substring(i, i+5);
+            placed[i/5] = i == 0 ? boardString.substring(i, i+5) : "" ;
+        }
+        if (!(isExitConnected(tiles[0]))) {return false;}
+//        boolean flag = false;
+        for (int i = 1; i < tiles.length; i++) {
+            for (int j = 0; j < placed.length; j++ ) {
+                if (isExitConnected(tiles[i])) {
+//                    flag = true;
+                    placed[i] = tiles[i];
+                    continue;
+                }
+                if (areConnectedNeighbours(tiles[i], placed[j])) {
+                    placed[i] = tiles[i];
+                }
+            }
+        }
+        return Arrays.equals(tiles, placed);
+
+
+
+
+    }
+
+    public static boolean isExitConnected(String tilePlacement) {
+        char[] a = tilePlacement.toCharArray();
+        char[] aShape = getShape(a, a[4]).toCharArray();
+
+        if ((a[2] == 'A' || a[2] == 'G') && (a[3] == '1' || a[3] == '3' || a[3] == '5')) {
+            if ((a[3] == '1' || a[3] =='5') && aShape[a[2] == 'A' ? 0 : 2] == 'h') {return true;}
+            else if (a[3] == '3' && aShape[a[2] == 'A' ? 0 : 2] == 'r') {return true;}
+        }
+
+        else if ((a[2] == 'B' || a[2] == 'D' || a[2] == 'F') && (a[3] == '0' || a[3] == '6')) {
+            if ((a[2] == 'B' || a[2] == 'F') && aShape[a[3] == '0' ? 1 : 3] == 'r') {return true;}
+            else if (a[2] == 'D' && aShape[a[3] == '0' ? 1 : 3] == 'h') {return true;}
+        }
+
         return false;
     }
 
 
-    /**
-     * Fix orientations of tiles except B1 which can be divided into 5 groups
-     * - S0, S1, B0: 4 -> 0, 5 -> 1, 6 -> 2, 7 -> 3
-     * - S2, S3: (1 - 7) -> 0
-     * - S4, A0, A5: 4 -> 1, 5 -> 2, 6 -> 3, 7 -> 0,
-     * - S5, A1, A4, B2: 2,4,6 -> 0, 3,5,7 -> 1
-     * - A2, A3: 4 -> 2, 5 -> 3, 6 -> 0, 7 -> 1
-     * @param tilePlacement is a well-formed 5 characters string
-     * @return string after fixing orientations
-     */
-    public static String fixOrientations(String tilePlacement) {
-        StringBuilder input = new StringBuilder(tilePlacement);
-        char oldOrientation = input.charAt(4);
-        CharSequence tile = input.subSequence(0, 2);
-        if ("S0S1B0".contains(tile)) {
-            switch (oldOrientation) {
-                case '4': input.replace(4, 5, "0");
-                    break;
-                case '5': input.replace(4, 5, "1");
-                    break;
-                case '6': input.replace(4, 5, "2");
-                    break;
-                case '7': input.replace(4, 5, "3");
-                    break;
-            }
-        }
 
-        if ("S2S3".contains(tile) && oldOrientation != '0') {
-            input.replace(4, 5, "0");
-        }
-
-        if ("S4A0A5".contains(tile)) {
-            switch (oldOrientation) {
-                case '4': input.replace(4, 5, "1");
-                    break;
-                case '5': input.replace(4, 5, "2");
-                    break;
-                case '6': input.replace(4, 5, "3");
-                    break;
-                case '7': input.replace(4, 5, "0");
-                    break;
-            }
-        }
-
-        if ("S5A1A4B2".contains(tile)) {
-            if ("246".contains(oldOrientation+"")) {
-                input.replace(4, 5, "0");
-            }
-            if ("357".contains(oldOrientation+"")) {
-                input.replace(4, 5, "1");
-            }
-        }
-
-        if ("A2A3".contains(tile)) {
-            switch (oldOrientation) {
-                case '4': input.replace(4, 5, "2");
-                    break;
-                case '5': input.replace(4, 5, "3");
-                    break;
-                case '6': input.replace(4, 5, "0");
-                    break;
-                case '7': input.replace(4, 5, "1");
-                    break;
-            }
-        }
-        return input.toString();
-    }
 
     /**
      * Generate a random dice roll as a string of eight characters.

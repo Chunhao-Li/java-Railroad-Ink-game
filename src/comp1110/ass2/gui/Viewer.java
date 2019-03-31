@@ -35,10 +35,11 @@ public class Viewer extends Application {
      */
     void makePlacement(String placement) {
         // FIXME Task 4: implement the simple placement viewer
-        ImageView tileImage = new ImageView();
-        tileImage.setImage(new Image(Viewer.class.getResource(Viewer.URI_BASE + "Board.jpg").toString()));
-        tileImage.setFitHeight(100);
-        tileImage.setFitWidth(100);
+//        ImageView tileImage = new ImageView();
+//        tileImage.setImage(new Image(Viewer.class.getResource(Viewer.URI_BASE + "Board.jpg").toString()));
+//        tileImage.setFitHeight(100);
+//        tileImage.setFitWidth(100);
+
     }
 
     /**
