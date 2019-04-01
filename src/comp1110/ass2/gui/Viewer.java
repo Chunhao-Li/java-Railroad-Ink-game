@@ -21,8 +21,8 @@ import javafx.stage.Stage;
  */
 public class Viewer extends Application {
     /* board layout */
-    private static final int VIEWER_WIDTH = 1024;
-    private static final int VIEWER_HEIGHT = 768;
+    private static final double VIEWER_WIDTH = 1024;
+    private static final double VIEWER_HEIGHT = 768;
     private static final String URI_BASE = "assets/";
     private static final int Tile_Size = 80;
 
@@ -56,8 +56,8 @@ public class Viewer extends Application {
                     Viewer.class.getResource(URI_BASE + placement.substring(i, i + 2) + ".png").toString()));
             tileImage.setFitWidth(Tile_Size);
             tileImage.setFitHeight(Tile_Size);
-            tileImage.setLayoutY((VIEWER_HEIGHT - 8 * Tile_Size) + (placement.charAt(i + 2) - 'A') * Tile_Size);
-            tileImage.setLayoutX((VIEWER_WIDTH - 10 * Tile_Size) + (placement.charAt(i + 3) - '0') * Tile_Size);
+            tileImage.setLayoutY((VIEWER_HEIGHT - 7 * Tile_Size)/2 + (placement.charAt(i + 2) - 'A') * Tile_Size);
+            tileImage.setLayoutX((VIEWER_WIDTH - 7 * Tile_Size)/2 + (placement.charAt(i + 3) - '0') * Tile_Size);
             j = placement.charAt(i + 4) - '0';
             if (j > 3) tileImage.setScaleX(-1);
             tileImage.setRotate(j < 4 ? j * 90 : (j - 4) * 90);
