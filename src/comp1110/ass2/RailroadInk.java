@@ -152,17 +152,14 @@ public class RailroadInk {
         // FIXME Task 6: determine whether the given placement sequence is valid
         String[] tiles = new String[boardString.length() / 5];
         String[] placed = new String[tiles.length];
-//        ArrayList<String> tiles = new ArrayList<>();
-        for (int i = 0; i+5 <= boardString.length() ; i = i+5) {
+        for (int i = 0; i+5 <= boardString.length() ; i += 5) {
             tiles[i/5] = boardString.substring(i, i+5);
             placed[i/5] = i == 0 ? boardString.substring(i, i+5) : "" ;
         }
         if (!(isExitConnected(tiles[0]))) {return false;}
-//        boolean flag = false;
         for (int i = 1; i < tiles.length; i++) {
             for (int j = 0; j < placed.length; j++ ) {
                 if (isExitConnected(tiles[i])) {
-//                    flag = true;
                     placed[i] = tiles[i];
                     continue;
                 }
