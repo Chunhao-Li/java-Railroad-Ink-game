@@ -24,7 +24,7 @@ public class RailroadInk {
             if (tilePlacementString.charAt(1) < '0' || tilePlacementString.charAt(1) > '2') {return false;}
         }
         else {
-            if (tilePlacementString.charAt(1) < '0' || tilePlacementString.charAt(1) > '6') {return false;}
+            if (tilePlacementString.charAt(1) < '0' || tilePlacementString.charAt(1) > '5') {return false;}
         }
         if (tilePlacementString.charAt(2) < 'A' || tilePlacementString.charAt(2) > 'G') {return false;}
         if (tilePlacementString.charAt(3) < '0' || tilePlacementString.charAt(3) > '6') {return false;}
