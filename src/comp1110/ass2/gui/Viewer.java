@@ -25,6 +25,8 @@ public class Viewer extends Application {
     private static final double VIEWER_HEIGHT = 768;
     private static final String URI_BASE = "assets/";
     private static final int Tile_Size = 80;
+    private static final int X_Side = 232;   //(VIEWER_WIDTH - Tile_Size * 7)/2
+    private static final int Y__Side = 104;   //(VIEWER_HEIGHT - Tile_Size * 7)/2
 
     private final Group root = new Group();
     private final Group controls = new Group();
@@ -67,8 +69,8 @@ public class Viewer extends Application {
 
     void drawExits() {
 
-        for (char row = 'A'; row <= 'G'; row += 6) {
-            for (char col = '1'; col <= '5'; col += 2) {
+        for (int col = 1; col <= 5; col += 2) {
+            for (int row = 0; row <= 7; row += 7) {
                 ImageView highExit = new ImageView(new Image(
                         Viewer.class.getResource(URI_BASE + "HighExit.png").toString()));
                 ImageView railExit = new ImageView(new Image(
@@ -77,27 +79,43 @@ public class Viewer extends Application {
                 highExit.setFitHeight(Tile_Size);
                 railExit.setFitWidth(Tile_Size);
                 railExit.setFitHeight(Tile_Size);
-                if (row == 'G') {
-                    railExit.setRotate(180);
+                if (row == 0) {
+                    if (col == 3) {
+                        railExit.setLayoutY(Y__Side - Tile_Size/2);
+                        railExit.setLayoutX(X_Side + col * Tile_Size);
+                        root.getChildren().add(railExit);
+                    }else if (col == 1){
+                        highExit.setLayoutY(Y__Side - Tile_Size/2);
+                        highExit.setLayoutX(X_Side + col * Tile_Size);
+                        root.getChildren().add(highExit);
+                    }else { // col == 5
+                        highExit.setLayoutY(Y__Side - Tile_Size/2);
+                        highExit.setLayoutX(X_Side + col * Tile_Size);
+                        root.getChildren().add(highExit);
+                    }
+                }
+                if (row == 7) {
                     highExit.setRotate(180);
+                    railExit.setRotate(180);
+                    if (col == 3) {
+                        railExit.setLayoutY(Y__Side - Tile_Size/2 + 7 * Tile_Size);
+                        railExit.setLayoutX(X_Side + col * Tile_Size);
+                        root.getChildren().add(railExit);
+                    }else if (col == 1){
+                        highExit.setLayoutY(Y__Side - Tile_Size/2 + 7 * Tile_Size);
+                        highExit.setLayoutX(X_Side + col * Tile_Size);
+                        root.getChildren().add(highExit);
+                    }else { // col == 5
+                        highExit.setLayoutY(Y__Side - Tile_Size/2 + 7 * Tile_Size);
+                        highExit.setLayoutX(X_Side + col * Tile_Size);
+                        root.getChildren().add(highExit);
+                    }
                 }
-
-                if (col == '3') {
-                    railExit.setLayoutY((VIEWER_HEIGHT - (row=='G'?7.6:8.7) * Tile_Size) + (row - 'A') * Tile_Size);
-                    railExit.setLayoutX((VIEWER_WIDTH - 10 * Tile_Size) + (col - '0') * Tile_Size);
-                    root.getChildren().add(railExit);
-                }
-                else {
-                    highExit.setLayoutY((VIEWER_HEIGHT - (row=='G'?7.6:8.7) * Tile_Size) + (row - 'A') * Tile_Size);
-                    highExit.setLayoutX((VIEWER_WIDTH - 10 * Tile_Size) + (col - '0') * Tile_Size);
-                    root.getChildren().add(highExit);
-                }
-
-
             }
         }
-        for (char row = 'B'; row <= 'G'; row += 2) {
-            for (char col = '0'; col <= '6'; col += 6) {
+
+        for (int row = 1; row <= 5; row += 2) {
+            for (int col = 0; col <= 7; col += 7) {
                 ImageView highExit = new ImageView(new Image(
                         Viewer.class.getResource(URI_BASE + "HighExit.png").toString()));
                 ImageView railExit = new ImageView(new Image(
@@ -106,27 +124,40 @@ public class Viewer extends Application {
                 highExit.setFitHeight(Tile_Size);
                 railExit.setFitWidth(Tile_Size);
                 railExit.setFitHeight(Tile_Size);
-                if (col == '0') {
+                if (col == 0) {
                     highExit.setRotate(270);
                     railExit.setRotate(270);
+                    if (row == 3) {
+                        highExit.setLayoutY(Y__Side + row * Tile_Size);
+                        highExit.setLayoutX(X_Side- Tile_Size/2);
+                        root.getChildren().add(highExit);
+                    }else if (row == 1){
+                        railExit.setLayoutY(Y__Side + row * Tile_Size);
+                        railExit.setLayoutX(X_Side- Tile_Size/2);
+                        root.getChildren().add(railExit);
+                    }else {
+                        railExit.setLayoutY(Y__Side + row * Tile_Size);
+                        railExit.setLayoutX(X_Side- Tile_Size/2);
+                        root.getChildren().add(railExit);
+                    }
                 }
-                if (col == '6') {
+                if (col == 7) {
                     highExit.setRotate(90);
                     railExit.setRotate(90);
+                    if (row == 3) {
+                        highExit.setLayoutY(Y__Side + row * Tile_Size);
+                        highExit.setLayoutX(X_Side- Tile_Size/2 + 7 * Tile_Size);
+                        root.getChildren().add(highExit);
+                    }else if (row == 1){
+                        railExit.setLayoutY(Y__Side + row * Tile_Size);
+                        railExit.setLayoutX(X_Side- Tile_Size/2 + 7 * Tile_Size);
+                        root.getChildren().add(railExit);
+                    }else {
+                        railExit.setLayoutY(Y__Side + row * Tile_Size);
+                        railExit.setLayoutX(X_Side- Tile_Size/2 + 7 * Tile_Size);
+                        root.getChildren().add(railExit);
+                    }
                 }
-
-                if (row == 'D') {
-                    highExit.setLayoutY((VIEWER_HEIGHT - 8 * Tile_Size) + (row - 'A') * Tile_Size);
-                    highExit.setLayoutX((VIEWER_WIDTH - (col=='0'?10.6:9.3) * Tile_Size) + (col - '0') * Tile_Size);
-                    root.getChildren().add(highExit);
-                }
-                else {
-                    railExit.setLayoutY((VIEWER_HEIGHT - 8 * Tile_Size) + (row - 'A') * Tile_Size);
-                    railExit.setLayoutX((VIEWER_WIDTH - (col=='0'?10.6:9.3) * Tile_Size) + (col - '0') * Tile_Size);
-                    root.getChildren().add(railExit);
-                }
-
-
             }
         }
 
@@ -162,29 +193,28 @@ public class Viewer extends Application {
 
             makeControls();
 
-
             Line[] row = new Line[8];
             Line[] column = new Line[8];
             for (int i = 0; i < 8; i ++){
                 row[i] = new Line();
                 column[i] = new Line();
-                row[i].setStartX(232);
-                row[i].setStartY(104 + i * 80);
-                row[i].setEndX(792);
-                row[i].setEndY(104 + i * 80);
-                column[i].setStartX(232 + i * 80);
-                column[i].setStartY(104);
-                column[i].setEndX(232 + i * 80);
-                column[i].setEndY(664);
+                row[i].setStartX(X_Side);
+                row[i].setStartY(Y__Side + i * Tile_Size);
+                row[i].setEndX(X_Side + 7 * Tile_Size);
+                row[i].setEndY(Y__Side + i * Tile_Size);
+                column[i].setStartX(X_Side + i * Tile_Size);
+                column[i].setStartY(Y__Side);
+                column[i].setEndX(X_Side + i * Tile_Size);
+                column[i].setEndY(Y__Side + 7 * Tile_Size);
                 root.getChildren().add(row[i]);
                 root.getChildren().add(column[i]);
             }
-            drawExits();
 
+            drawExits();
 
             primaryStage.setScene(scene);
             primaryStage.show();
             //makePlacement("B2A01B2A10B2G01B2A61B2G61");
-            //makePlacement("A4A12B2B16A1B01A1B23S1B32A1A32B1B44B2A44A4C16A3D15A4D01A5D23A4E20B1F24A2F17A1F01B0G16A5C34A4C43A5C53A3D50A4D61S4E50A0F51A1F67S2E46B1E31A1F30A2G36A1G41B1G52");
+            makePlacement("A4A12B2B16A1B01A1B23S1B32A1A32B1B44B2A44A4C16A3D15A4D01A5D23A4E20B1F24A2F17A1F01B0G16A5C34A4C43A5C53A3D50A4D61S4E50A0F51A1F67S2E46B1E31A1F30A2G36A1G41B1G52");
         }
     }
