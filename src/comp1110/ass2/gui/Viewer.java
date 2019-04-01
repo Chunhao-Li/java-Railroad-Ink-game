@@ -24,7 +24,7 @@ public class Viewer extends Application {
     private static final double VIEWER_WIDTH = 1024;
     private static final double VIEWER_HEIGHT = 768;
     private static final String URI_BASE = "assets/";
-    private static final int Tile_Size = 80;
+    private static final double Tile_Size = 80;
     private static final int X_Side = 232;   //(VIEWER_WIDTH - Tile_Size * 7)/2
     private static final int Y__Side = 104;   //(VIEWER_HEIGHT - Tile_Size * 7)/2
 
@@ -214,7 +214,5 @@ public class Viewer extends Application {
 
             primaryStage.setScene(scene);
             primaryStage.show();
-            //makePlacement("B2A01B2A10B2G01B2A61B2G61");
-            makePlacement("A4A12B2B16A1B01A1B23S1B32A1A32B1B44B2A44A4C16A3D15A4D01A5D23A4E20B1F24A2F17A1F01B0G16A5C34A4C43A5C53A3D50A4D61S4E50A0F51A1F67S2E46B1E31A1F30A2G36A1G41B1G52");
         }
     }
