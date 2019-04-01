@@ -44,8 +44,8 @@ public class Viewer extends Application {
                     Viewer.class.getResource(URI_BASE + placement.substring(i, i + 2) + ".png").toString()));
             tileImage.setFitWidth(Tile_Size);
             tileImage.setFitHeight(Tile_Size);
-            tileImage.setLayoutY((VIEWER_HEIGHT - 7 * Tile_Size) + (placement.charAt(i + 2) - 'A') * Tile_Size);
-            tileImage.setLayoutX((VIEWER_WIDTH - 7 * Tile_Size) + (placement.charAt(i + 3) - '0') * Tile_Size);
+            tileImage.setLayoutY((VIEWER_HEIGHT - 8 * Tile_Size) + (placement.charAt(i + 2) - 'A') * Tile_Size);
+            tileImage.setLayoutX((VIEWER_WIDTH - 10 * Tile_Size) + (placement.charAt(i + 3) - '0') * Tile_Size);
             j = placement.charAt(i + 4) - '0';
             if (j > 3) tileImage.setScaleX(-1);
             tileImage.setRotate(j < 4 ? j * 90 : (j - 4) * 90);
