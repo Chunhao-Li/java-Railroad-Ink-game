@@ -1,5 +1,6 @@
 package comp1110.ass2.gui;
 
+import comp1110.ass2.RailroadInk;
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -39,6 +40,17 @@ public class Viewer extends Application {
     void makePlacement(String placement) {
         // FIXME Task 4: implement the simple placement viewer
         Pieces.getChildren().clear();
+        if (RailroadInk.isBoardStringWellFormed(placement)){
+            for (int i = 0; i+5 <= placement.length(); i += 5) {
+                String tile = placement.substring(0, i+5);
+                makeOnePlacement(placement);
+            }
+        }
+
+
+
+    }
+    void makeOnePlacement(String placement) {
         for (int j, i = placement.length() - 5; i >= 0; i -= 5) {
             ImageView tileImage = new ImageView(new Image(
                     Viewer.class.getResource(URI_BASE + placement.substring(i, i + 2) + ".png").toString()));
@@ -51,10 +63,75 @@ public class Viewer extends Application {
             tileImage.setRotate(j < 4 ? j * 90 : (j - 4) * 90);
             Pieces.getChildren().add(tileImage);
         }
+    }
+
+    void drawExits() {
+
+        for (char row = 'A'; row <= 'G'; row += 6) {
+            for (char col = '1'; col <= '5'; col += 2) {
+                ImageView highExit = new ImageView(new Image(
+                        Viewer.class.getResource(URI_BASE + "HighExit.png").toString()));
+                ImageView railExit = new ImageView(new Image(
+                        Viewer.class.getResource(URI_BASE + "RailExit.png").toString()));
+                highExit.setFitWidth(Tile_Size);
+                highExit.setFitHeight(Tile_Size);
+                railExit.setFitWidth(Tile_Size);
+                railExit.setFitHeight(Tile_Size);
+                if (row == 'G') {
+                    railExit.setRotate(180);
+                    highExit.setRotate(180);
+                }
+
+                if (col == '3') {
+                    railExit.setLayoutY((VIEWER_HEIGHT - (row=='G'?7.6:8.7) * Tile_Size) + (row - 'A') * Tile_Size);
+                    railExit.setLayoutX((VIEWER_WIDTH - 10 * Tile_Size) + (col - '0') * Tile_Size);
+                    root.getChildren().add(railExit);
+                }
+                else {
+                    highExit.setLayoutY((VIEWER_HEIGHT - (row=='G'?7.6:8.7) * Tile_Size) + (row - 'A') * Tile_Size);
+                    highExit.setLayoutX((VIEWER_WIDTH - 10 * Tile_Size) + (col - '0') * Tile_Size);
+                    root.getChildren().add(highExit);
+                }
+
+
+            }
+        }
+        for (char row = 'B'; row <= 'G'; row += 2) {
+            for (char col = '0'; col <= '6'; col += 6) {
+                ImageView highExit = new ImageView(new Image(
+                        Viewer.class.getResource(URI_BASE + "HighExit.png").toString()));
+                ImageView railExit = new ImageView(new Image(
+                        Viewer.class.getResource(URI_BASE + "RailExit.png").toString()));
+                highExit.setFitWidth(Tile_Size);
+                highExit.setFitHeight(Tile_Size);
+                railExit.setFitWidth(Tile_Size);
+                railExit.setFitHeight(Tile_Size);
+                if (col == '0') {
+                    highExit.setRotate(270);
+                    railExit.setRotate(270);
+                }
+                if (col == '6') {
+                    highExit.setRotate(90);
+                    railExit.setRotate(90);
+                }
+
+                if (row == 'D') {
+                    highExit.setLayoutY((VIEWER_HEIGHT - 8 * Tile_Size) + (row - 'A') * Tile_Size);
+                    highExit.setLayoutX((VIEWER_WIDTH - (col=='0'?10.6:9.3) * Tile_Size) + (col - '0') * Tile_Size);
+                    root.getChildren().add(highExit);
+                }
+                else {
+                    railExit.setLayoutY((VIEWER_HEIGHT - 8 * Tile_Size) + (row - 'A') * Tile_Size);
+                    railExit.setLayoutX((VIEWER_WIDTH - (col=='0'?10.6:9.3) * Tile_Size) + (col - '0') * Tile_Size);
+                    root.getChildren().add(railExit);
+                }
+
+
+            }
+        }
 
 
     }
-
     /**
      * Create a basic text field for input and a refresh button.
      */
@@ -102,6 +179,8 @@ public class Viewer extends Application {
                 root.getChildren().add(row[i]);
                 root.getChildren().add(column[i]);
             }
+            drawExits();
+
 
             primaryStage.setScene(scene);
             primaryStage.show();
