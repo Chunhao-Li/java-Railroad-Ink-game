@@ -39,20 +39,9 @@ public class Viewer extends Application {
      *
      * @param placement A valid placement string
      */
-    void makePlacement(String placement) {
+    public void makePlacement(String placement) {
         // FIXME Task 4: implement the simple placement viewer
         Pieces.getChildren().clear();
-        if (RailroadInk.isBoardStringWellFormed(placement)){
-            for (int i = 0; i+5 <= placement.length(); i += 5) {
-                String tile = placement.substring(0, i+5);
-                makeOnePlacement(placement);
-            }
-        }
-
-
-
-    }
-    void makeOnePlacement(String placement) {
         for (int j, i = placement.length() - 5; i >= 0; i -= 5) {
             ImageView tileImage = new ImageView(new Image(
                     Viewer.class.getResource(URI_BASE + placement.substring(i, i + 2) + ".png").toString()));
@@ -65,9 +54,11 @@ public class Viewer extends Application {
             tileImage.setRotate(j < 4 ? j * 90 : (j - 4) * 90);
             Pieces.getChildren().add(tileImage);
         }
+
     }
 
-    void drawExits() {
+
+    public void drawExits() {
 
         for (int col = 1; col <= 5; col += 2) {
             for (int row = 0; row <= 7; row += 7) {
@@ -219,4 +210,4 @@ public class Viewer extends Application {
     public static void main(String[] args) {
         launch();
     }
-    }
+}

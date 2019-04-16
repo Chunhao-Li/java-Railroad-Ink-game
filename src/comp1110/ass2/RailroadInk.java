@@ -1,7 +1,6 @@
 package comp1110.ass2;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
 public class RailroadInk {
     /**
@@ -230,7 +229,14 @@ public class RailroadInk {
      */
     public static String generateDiceRoll() {
         // FIXME Task 7: generate a dice roll
-        return "";
+        StringBuilder sb = new StringBuilder();
+        int count = 3;
+        while (count > 0) {
+            sb.append('A').append(String.valueOf((int) (Math.random()*5)));
+            count--;
+        }
+        sb.append('B').append(String.valueOf((int) (Math.random()*2)));
+        return sb.toString();
     }
 
     /**
@@ -246,7 +252,185 @@ public class RailroadInk {
      */
     public static int getBasicScore(String boardString) {
         // FIXME Task 8: compute the basic score
-        return -1;
+
+        String[] tilePlacements = new String[boardString.length()/5];
+        for (int i = 0; i+5 <= boardString.length(); i += 5) {
+            tilePlacements[i/5] = boardString.substring(i, i+5);
+        }
+
+        int exitScore = 0;
+        int centerTilesScore = 0;
+        int deadEndsScore = 0;
+        exitScore = countExitsScore(tilePlacements);
+        deadEndsScore = countErrorsScore(tilePlacements);
+        for (String placement : tilePlacements) {
+            if (placement.charAt(2) >= 'C' && placement.charAt(2) <= 'E'
+                && placement.charAt(3) >= '2' && placement.charAt(3) <= '4') {
+                centerTilesScore++;
+            }
+        }
+        return exitScore+centerTilesScore-deadEndsScore;
+
+    }
+
+    /**
+     * Count the total scores of connected exits of all routes
+     * @param tilePlacements an array of string which contains tile placements
+     * @return the score of all routes based on their connected exits
+     */
+    public static int countExitsScore(String[] tilePlacements) {
+        // Avoid modifying the original array
+        ArrayList<String> tiles = new ArrayList<>();
+        Collections.addAll(tiles, tilePlacements);
+
+        int count = 0;
+        int sum = 0;
+        boolean flag = true;
+
+        // Use HashSets to remove duplicates
+        HashSet<String> b2Tiles = new HashSet<>();
+        HashSet<String> connectedTiles = new HashSet<>();
+        HashSet<String> route = new HashSet<>();
+
+        while (!tiles.stream().allMatch(RailroadInk::isB2Tile))
+        {
+        while (flag) {
+            for (int i = 0; i < tiles.size(); i++) {
+                String tile = tiles.get(i);
+                if (route.isEmpty()) {
+                    route.add(tile);
+                    connectedTiles.add(tile);
+                }
+
+                for (String tileCollected : route) {
+                    if (!areConnectedNeighbours(tileCollected, tile)) continue;
+                    if (!isB2Tile(tile)) {
+                        connectedTiles.add(tile);
+                        continue;
+                    }
+                    b2Tiles.add(tile);
+                    for (String tile1 : tiles) {
+                        if (areConnectedNeighbours(tile1, tile) &&
+                            (tile.charAt(2) == tileCollected.charAt(2) ?
+                            tile.charAt(2) == tile1.charAt(2) :
+                            tile.charAt(3) == tile1.charAt(3)))
+                                connectedTiles.add(tile1);
+                    }
+                }
+
+            }
+            flag = false;
+
+            // Update route and tiles
+            route.addAll(connectedTiles);
+            tiles.removeAll(connectedTiles);
+            connectedTiles.clear();
+
+            // Check whether the current route can be expanded
+            for (String t : tiles) {
+                for (String t1 : route) {
+                    if (areConnectedNeighbours(t, t1) && !isB2Tile(t))
+                        flag = true;
+                }
+            }
+
+            // Count exits and start a new route
+            if (!flag) {
+                route.addAll(b2Tiles);
+                b2Tiles.clear();
+                for (String t : route) {
+                    if (isExitConnected(t))
+                        count++;
+                }
+                route.clear();
+
+                if (count == 12)
+                    sum += 45;
+                else if (count >= 2)
+                    sum += count * 4 - 4;
+                count = 0;
+            }
+        }
+        flag = true;
+    }
+        return sum;
+
+    }
+
+    public static boolean isB2Tile(String placement) {
+        return placement.charAt(0) == 'B' && placement.charAt(1) == '2';
+    }
+
+
+
+    public static int countErrorsScore(String[] tilePlacements) {
+        String[] tiles = Arrays.copyOf(tilePlacements, tilePlacements.length);
+        for (int i = 0; i < tiles.length; i++) {
+            tiles[i] = getShape(tilePlacements[i].toCharArray(), tilePlacements[i].charAt(4))
+                            + tilePlacements[i].substring(2, 4);
+        }
+
+        // tiles connected to the edge of the board
+        for (int i = 0; i < tiles.length; i++) {
+            String t = tiles[i];
+            if (t.charAt(4) == 'A' && t.charAt(0) != '#') {
+                t = "#" + t.substring(1);
+            }
+
+            if (t.charAt(4) == 'G' && t.charAt(2) != '#') {
+                t = t.substring(0, 2) + "#" +t.substring(3);
+            }
+
+            if (t.charAt(5) == '0' && t.charAt(1) != '#') {
+                t = t.charAt(0) + "#" + t.substring(2);
+            }
+
+            if (t.charAt(5) == '6' && t.charAt(3) != '#') {
+                t = t.substring(0, 3) + "#" + t.substring(4);
+            }
+            tiles[i] = t;
+        }
+
+        // tiles connected with neighbours
+        for (int i = 0; i < tiles.length; i++) {
+            for (int j = tiles.length-1; j > i; j--) {
+                if (areConnectedNeighbours(tilePlacements[i], tilePlacements[j])) {
+                    String tileI = tiles[i];
+                    String tileJ = tiles[j];
+                    if (tileI.charAt(4) == tileJ.charAt(4)) {
+                        if (tileI.charAt(5) < tileJ.charAt(5)) {
+                            tileI = tileI.substring(0, 3) + "#" + tileI.substring(4);
+                            tileJ = tileJ.charAt(0) + "#" + tileJ.substring(2);
+                        } else {
+                            tileI = tileI.charAt(0) + "#" + tileI.substring(2);
+                            tileJ = tileJ.substring(0, 3) + "#" + tileJ.substring(4);
+                        }
+                    }
+
+                    if (tileI.charAt(5) == tileJ.charAt(5)) {
+                        if (tileI.charAt(4) < tileJ.charAt(4)) {
+                            tileI = tileI.substring(0, 2) + "#" +tileI.substring(3);
+                            tileJ = "#" + tileJ.substring(1);
+                        } else {
+                            tileJ = tileJ.substring(0, 2) + "#" +tileJ.substring(3);
+                            tileI = "#" + tileI.substring(1);
+                        }
+                    }
+                    tiles[i] = tileI;
+                    tiles[j] = tileJ;
+                }
+            }
+        }
+        StringBuilder sb = new StringBuilder();
+        for (String tile : tiles) {
+            sb.append(tile.substring(0, 4));
+        }
+        int errors = 0;
+        for (char c : sb.toString().toCharArray()) {
+            if (c != '#') {errors++;}
+        }
+        return errors;
+
     }
 
     /**
@@ -275,6 +459,17 @@ public class RailroadInk {
     public static int getAdvancedScore(String boardString) {
         // FIXME Task 12: compute the total score including bonus points
         return -1;
+    }
+}
+
+class B2Tile {
+//    Node horizontalNode;
+//    Node verticalNode;
+    HashSet<String> horizontalRoute;
+    HashSet<String> verticalRoute;
+    String placement;
+    B2Tile(String placement) {
+        this.placement = placement;
     }
 }
 
