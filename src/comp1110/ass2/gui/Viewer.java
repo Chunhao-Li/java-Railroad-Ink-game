@@ -10,7 +10,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
 /**
@@ -179,6 +184,11 @@ public class Viewer extends Application {
             primaryStage.setTitle("StepsGame Viewer");
             Scene scene = new Scene(root, VIEWER_WIDTH, VIEWER_HEIGHT);
 
+            Rectangle rectangle = new Rectangle(3*Tile_Size, 3*Tile_Size, Color.LIGHTGRAY);
+            rectangle.setX(X_Side+2*Tile_Size);
+            rectangle.setY(Y__Side+2*Tile_Size);
+            root.getChildren().add(rectangle);
+
             root.getChildren().add(controls);
             root.getChildren().add(Pieces);
 
@@ -200,7 +210,6 @@ public class Viewer extends Application {
                 root.getChildren().add(row[i]);
                 root.getChildren().add(column[i]);
             }
-
             drawExits();
 
             primaryStage.setScene(scene);

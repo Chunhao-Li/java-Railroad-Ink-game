@@ -155,6 +155,7 @@ public class RailroadInk {
             tiles[i/5] = boardString.substring(i, i+5);
             placed[i/5] = i == 0 ? boardString.substring(i, i+5) : "" ;
         }
+
         if (!(isExitConnected(tiles[0]))) {return false;}
         for (int i = 1; i < tiles.length; i++) {
             for (int j = 0; j < placed.length; j++ ) {
@@ -167,6 +168,7 @@ public class RailroadInk {
                 }
             }
         }
+
         return Arrays.equals(tiles, placed);
 
 
@@ -179,13 +181,18 @@ public class RailroadInk {
      */
     private static boolean isInvalidExitConnection(String tilePlacement) {
         char[] a = tilePlacement.toCharArray();
+        char[] aShape = getShape(a, a[4]).toCharArray();
 
         if ((a[2] == 'A' || a[2] == 'G') && (a[3] == '1' || a[3] == '3' || a[3] == '5')) {
-            return (!isExitConnected(tilePlacement));
+            if (aShape[a[2] == 'A' ? 0 : 2] != '#') {
+                return (!isExitConnected(tilePlacement));
+            }
 
         }
         else if ((a[2] == 'B' || a[2] == 'D' || a[2] == 'F') && (a[3] == '0' || a[3] == '6')) {
-            return (!isExitConnected(tilePlacement));
+            if (aShape[a[3] == '0' ? 1 : 3] != '#') {
+                return (!isExitConnected(tilePlacement));
+            }
         }
         return false;
 
@@ -362,7 +369,11 @@ public class RailroadInk {
     }
 
 
-
+    /**
+     * Count all errors: Errors are the edges of routes that are not connected to an edge of the board.
+     * @param tilePlacements an array of string which contains tile placements
+     * @return the number of errors also regarded as scores.
+     */
     public static int countErrorsScore(String[] tilePlacements) {
         String[] tiles = Arrays.copyOf(tilePlacements, tilePlacements.length);
         for (int i = 0; i < tiles.length; i++) {
@@ -443,8 +454,203 @@ public class RailroadInk {
      */
     public static String generateMove(String boardString, String diceRoll) {
         // FIXME Task 10: generate a valid move
-        return null;
+
+
+        List<String> tiles = new ArrayList<>(4);
+        for (int i = 0; i+2 <= diceRoll.length(); i+=2) {
+            tiles.add(diceRoll.substring(i, i+2));
+        }
+
+
+        List<String> unUsedGridsBase = getUnusedGrids(boardString);
+
+        List<String> validMoves = new ArrayList<>();
+        int count = 0;
+        while ( count < 4) {
+
+            List<String> unUsedGrids = new ArrayList<>(unUsedGridsBase);
+
+            HashMap<Integer, List<StringBuilder>> movesDP = new HashMap<>();
+            List<StringBuilder> base =  new ArrayList<>();
+            base.add(new StringBuilder(""));
+            movesDP.put(-1, base);
+            for (int t = 0; t < tiles.size(); t++) {
+                String tile = tiles.get(t);
+                boolean placed = false;
+                List<StringBuilder> lastMoves = movesDP.get(t-1);
+                for (int i = 0; i < unUsedGrids.size(); i++) {
+                    String unUsedGrid = unUsedGrids.get(i);
+                    List<Character> orientations = getOrientations(tile);
+                    for (char o : orientations) {
+                        String aMove = tile + unUsedGrid + o;
+                        if (null != lastMoves) {
+                            for (StringBuilder lastMove : lastMoves) {
+                                if (isValidPlacementSequence(boardString + lastMove.append(aMove).toString())) {
+                                    movesDP.computeIfAbsent(t, k -> new ArrayList<>());
+                                    List<StringBuilder> currentMoves = movesDP.get(t);
+                                    StringBuilder currentMove = new StringBuilder(lastMove.toString());
+
+                                    currentMoves.add(currentMove);
+                                    placed = true;
+
+                                }
+                                lastMove.delete(lastMove.length() - 5, lastMove.length());
+                            }
+                        }
+                    }
+                    if (placed) {
+                        unUsedGrids.remove(i);
+                        break;
+                    }
+                }
+            }
+            String firstTile = tiles.remove(0);
+            tiles.add(firstTile);
+            HashSet<StringBuilder> allMoves = new HashSet<>();
+            for (Map.Entry<Integer, List<StringBuilder>> entry : movesDP.entrySet()) {
+                allMoves.addAll(entry.getValue());
+            }
+            for (StringBuilder m : allMoves) {
+                if (areNeighboursValid(boardString, m.toString())) {
+                    validMoves.add(m.toString());
+                }
+
+            }
+            count++;
+
+        }
+
+        return max(validMoves);
+
     }
+
+    /**
+     * Returns the longest string in the list.
+     * @param moves a List of String.
+     * @return the longest string
+     */
+    static String max(List<String> moves) {
+        String longestMove = "";
+        for (String move :moves) {
+            if (move.length() > longestMove.length()) {
+                longestMove = move;
+            }
+        }
+        return longestMove;
+    }
+
+
+    /**
+     * Get all possible orientations for a specific tile after fixing orientations.
+     * @param tile a String of two chars which represent a tile
+     * @return a List of Characters which contain possible orientations
+     */
+    static List<Character> getOrientations(String tile) {
+            List<Character> orientations = new ArrayList<>();
+            if (tile.equals("B1")) {
+                for (char i = '0'; i <= '7'; i++) {
+                    orientations.add(i);
+                }
+            }
+            else if (tile.equals("A1") || tile.equals("A4") || tile.equals("B2")) {
+                orientations.add('0');
+                orientations.add('1');
+            }
+            else {
+                for (char i = '0'; i <= '3'; i++) {
+                    orientations.add(i);
+                }
+            }
+            return orientations;
+    }
+
+
+    /**
+     * This function is to check whether two neighbouring tile are validly connected
+     * @param boardString a string represents game state
+     * @param newPlacementString a sequence of new placements
+     * @return boolean
+     */
+    static boolean areNeighboursValid(String boardString, String newPlacementString) {
+        HashMap<String, String> placed = new HashMap<>();
+        for (int i = 0; i+5 <= boardString.length(); i+=5) {
+            String grid = boardString.substring(i+2, i+4);
+            placed.put(grid, boardString.substring(i, i + 5));
+        }
+
+        List<String> newPlacements = new ArrayList<>();
+        for (int i = 0; i+5 <= newPlacementString.length(); i += 5) {
+            newPlacements.add(newPlacementString.substring(i, i+5));
+        }
+
+        for (String placement : newPlacements) {
+            char row = placement.charAt(2);
+            char col = placement.charAt(3);
+            for (char i = row == 'A' ? row : (char) (row - 1); i <= row + 1; i++) {
+                for (char j = col == '0' ? col : (char) (col - 1); j <= col + 1; j++) {
+                    if (i > 'G' || j > '6') {
+                        continue;
+                    }
+                    if (Math.abs(i - row) == 1 && Math.abs(j - col) == 1) {
+                        continue;
+                    }
+                    if (i == row && j == col) {
+                        continue;
+                    }
+                    String grid = String.valueOf(i) + String.valueOf(j);
+                    if (placed.containsKey(grid)) {
+                        String neighbour = placed.get(grid);
+                        String placementShape = getShape(placement.toCharArray(), placement.charAt(4));
+                        String neighbourShape = getShape(neighbour.toCharArray(), neighbour.charAt(4));
+                        if (row == i && (col < j
+                            ? (placementShape.charAt(3) != '#' && neighbourShape.charAt(1) != '#' &&
+                                placementShape.charAt(3) != neighbourShape.charAt(1))
+                            : (placementShape.charAt(1) != '#' && neighbourShape.charAt(3) != '#' &&
+                                placementShape.charAt(1) != neighbourShape.charAt(3)))) {
+                            return false;
+                        }
+
+                        if (col == j && (row < i
+                            ? (placementShape.charAt(2) != '#' && neighbourShape.charAt(0) != '#' &&
+                                placementShape.charAt(2) != neighbourShape.charAt(0))
+                            : (placementShape.charAt(0) != '#' && neighbourShape.charAt(2) != '#' &&
+                                placementShape.charAt(0) != neighbourShape.charAt(2)))) {
+                            return false;
+                        }
+
+                    }
+                }
+            }
+            placed.put(placement.substring(2, 4), placement);
+        }
+
+        return true;
+
+    }
+
+    /**
+     * Get all the unplaced grids.
+     * @param boardString a sequence of current game state
+     * @return a List of String which contains all available grids
+     */
+    static List<String> getUnusedGrids(String boardString) {
+        List<String> board = new ArrayList<>();
+        for (char i = 'A'; i <= 'G'; i++) {
+            for (char j = '0'; j <= '6'; j++) {
+                String grid = String.valueOf(i) + String.valueOf(j);
+                board.add(grid);
+            }
+        }
+        List<String> usedGrids = new ArrayList<>();
+        for (int i = 0; i+5 <= boardString.length(); i+=5) {
+            String grid = boardString.substring(i+2, i+4);
+            usedGrids.add(grid);
+        }
+
+        board.removeAll(usedGrids);
+        return board;
+    }
+
 
     /**
      * Given the current state of a game board, output an integer representing the sum of all the factors contributing
@@ -459,17 +665,6 @@ public class RailroadInk {
     public static int getAdvancedScore(String boardString) {
         // FIXME Task 12: compute the total score including bonus points
         return -1;
-    }
-}
-
-class B2Tile {
-//    Node horizontalNode;
-//    Node verticalNode;
-    HashSet<String> horizontalRoute;
-    HashSet<String> verticalRoute;
-    String placement;
-    B2Tile(String placement) {
-        this.placement = placement;
     }
 }
 
