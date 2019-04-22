@@ -664,6 +664,7 @@ public class RailroadInk {
      */
     public static int getAdvancedScore(String boardString) {
         // FIXME Task 12: compute the total score including bonus points
+        int basicScore = getBasicScore(boardString);
         return -1;
     }
 }
