@@ -286,7 +286,7 @@ public class RailroadInk {
      * @return the score of all routes based on their connected exits
      */
     public static int countExitsScore(String[] tilePlacements) {
-        // Avoid modifying the original array
+        // Avoid modifying the original ArrayList
         ArrayList<String> tiles = new ArrayList<>();
         Collections.addAll(tiles, tilePlacements);
 

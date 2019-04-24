@@ -11,12 +11,12 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A very simple viewer for tile placements in the Railroad Ink game.
@@ -31,12 +31,14 @@ public class Viewer extends Application {
     private static final String URI_BASE = "assets/";
     private static final double Tile_Size = 80;
     private static final int X_Side = 232;   //(VIEWER_WIDTH - Tile_Size * 7)/2
-    private static final int Y__Side = 104;   //(VIEWER_HEIGHT - Tile_Size * 7)/2
+    private static final int Y_Side = 104;   //(VIEWER_HEIGHT - Tile_Size * 7)/2
 
     private final Group root = new Group();
     private final Group controls = new Group();
     private final Group Pieces = new Group();
+    private final Group availablePieces = new Group();
     private TextField textField;
+    List<DraggablePiece> newPieces = new ArrayList<>();
 
 
     /**
@@ -63,8 +65,7 @@ public class Viewer extends Application {
     }
 
 
-    public void drawExits() {
-
+    private void drawExits() {
         for (int col = 1; col <= 5; col += 2) {
             for (int row = 0; row <= 7; row += 7) {
                 ImageView highExit = new ImageView(new Image(
@@ -77,15 +78,15 @@ public class Viewer extends Application {
                 railExit.setFitHeight(Tile_Size);
                 if (row == 0) {
                     if (col == 3) {
-                        railExit.setLayoutY(Y__Side - Tile_Size/2);
+                        railExit.setLayoutY(Y_Side - Tile_Size/2);
                         railExit.setLayoutX(X_Side + col * Tile_Size);
                         root.getChildren().add(railExit);
                     }else if (col == 1){
-                        highExit.setLayoutY(Y__Side - Tile_Size/2);
+                        highExit.setLayoutY(Y_Side - Tile_Size/2);
                         highExit.setLayoutX(X_Side + col * Tile_Size);
                         root.getChildren().add(highExit);
                     }else { // col == 5
-                        highExit.setLayoutY(Y__Side - Tile_Size/2);
+                        highExit.setLayoutY(Y_Side - Tile_Size/2);
                         highExit.setLayoutX(X_Side + col * Tile_Size);
                         root.getChildren().add(highExit);
                     }
@@ -94,15 +95,15 @@ public class Viewer extends Application {
                     highExit.setRotate(180);
                     railExit.setRotate(180);
                     if (col == 3) {
-                        railExit.setLayoutY(Y__Side - Tile_Size/2 + 7 * Tile_Size);
+                        railExit.setLayoutY(Y_Side - Tile_Size/2 + 7 * Tile_Size);
                         railExit.setLayoutX(X_Side + col * Tile_Size);
                         root.getChildren().add(railExit);
                     }else if (col == 1){
-                        highExit.setLayoutY(Y__Side - Tile_Size/2 + 7 * Tile_Size);
+                        highExit.setLayoutY(Y_Side - Tile_Size/2 + 7 * Tile_Size);
                         highExit.setLayoutX(X_Side + col * Tile_Size);
                         root.getChildren().add(highExit);
                     }else { // col == 5
-                        highExit.setLayoutY(Y__Side - Tile_Size/2 + 7 * Tile_Size);
+                        highExit.setLayoutY(Y_Side - Tile_Size/2 + 7 * Tile_Size);
                         highExit.setLayoutX(X_Side + col * Tile_Size);
                         root.getChildren().add(highExit);
                     }
@@ -124,15 +125,15 @@ public class Viewer extends Application {
                     highExit.setRotate(270);
                     railExit.setRotate(270);
                     if (row == 3) {
-                        highExit.setLayoutY(Y__Side + row * Tile_Size);
+                        highExit.setLayoutY(Y_Side + row * Tile_Size);
                         highExit.setLayoutX(X_Side- Tile_Size/2);
                         root.getChildren().add(highExit);
                     }else if (row == 1){
-                        railExit.setLayoutY(Y__Side + row * Tile_Size);
+                        railExit.setLayoutY(Y_Side + row * Tile_Size);
                         railExit.setLayoutX(X_Side- Tile_Size/2);
                         root.getChildren().add(railExit);
                     }else {
-                        railExit.setLayoutY(Y__Side + row * Tile_Size);
+                        railExit.setLayoutY(Y_Side + row * Tile_Size);
                         railExit.setLayoutX(X_Side- Tile_Size/2);
                         root.getChildren().add(railExit);
                     }
@@ -141,28 +142,187 @@ public class Viewer extends Application {
                     highExit.setRotate(90);
                     railExit.setRotate(90);
                     if (row == 3) {
-                        highExit.setLayoutY(Y__Side + row * Tile_Size);
+                        highExit.setLayoutY(Y_Side + row * Tile_Size);
                         highExit.setLayoutX(X_Side- Tile_Size/2 + 7 * Tile_Size);
                         root.getChildren().add(highExit);
                     }else if (row == 1){
-                        railExit.setLayoutY(Y__Side + row * Tile_Size);
+                        railExit.setLayoutY(Y_Side + row * Tile_Size);
                         railExit.setLayoutX(X_Side- Tile_Size/2 + 7 * Tile_Size);
                         root.getChildren().add(railExit);
                     }else {
-                        railExit.setLayoutY(Y__Side + row * Tile_Size);
+                        railExit.setLayoutY(Y_Side + row * Tile_Size);
                         railExit.setLayoutX(X_Side- Tile_Size/2 + 7 * Tile_Size);
                         root.getChildren().add(railExit);
                     }
                 }
             }
         }
+    }
 
+    void generateDicePieces() {
+        newPieces.clear();
+        availablePieces.getChildren().clear();
+        String dices = RailroadInk.generateDiceRoll();
+        String[] eachDice = new String[4];
+        for (int i = 0; i+2 <= dices.length(); i+=2) {
+            eachDice[i/2] = dices.substring(i, i+2);
+        }
+        for (int i = 0; i < eachDice.length; i++) {
+            String dice = eachDice[i];
+//            ImageView tileImage = new ImageView(new Image(Viewer.class.getResource(
+//                    URI_BASE + dice + ".png").toString()));
+            Image tileImage = new Image(Viewer.class.getResource(URI_BASE + dice + ".png").toString());
+            DraggablePiece draggablePiece = new DraggablePiece(tileImage);
+//            tileImage.setFitHeight(Tile_Size);
+//            tileImage.setFitWidth(Tile_Size);
+//            tileImage.setLayoutX(X_Side/3f);
+//            tileImage.setLayoutY(Y_Side + 20 + 2*i * Tile_Size);
+            draggablePiece.setFitHeight(Tile_Size);
+            draggablePiece.setFitWidth(Tile_Size);
+            draggablePiece.homeX = X_Side/3f;
+            draggablePiece.homeY = Y_Side + 20 + 2*i * Tile_Size;
+//            draggablePiece.setLayoutX(X_Side/3f);
+//            draggablePiece.setLayoutY(Y_Side + 20 + 2*i * Tile_Size);
+            draggablePiece.setLayoutX(draggablePiece.homeX);
+            draggablePiece.setLayoutY(draggablePiece.homeY);
+            newPieces.add(draggablePiece);
+//            availablePieces.getChildren().add(tileImage);
+        }
+        for (int i = 0; i < 6; i++ ) {
+//            ImageView tileImage = new ImageView(new Image(Viewer.class.getResource(
+//                    URI_BASE + "S" + i + ".png").toString()));
+            Image tileImage = new Image(Viewer.class.getResource(
+                    URI_BASE + "S" + i + ".png").toString());
+            DraggablePiece draggablePiece = new DraggablePiece(tileImage);
+//            tileImage.setFitWidth(Tile_Size);
+//            tileImage.setFitHeight(Tile_Size);
+//            tileImage.setLayoutX(X_Side + 7*Tile_Size + X_Side/3f);
+//            tileImage.setLayoutY(30 + 1.5*i*Tile_Size);
+            draggablePiece.setFitWidth(Tile_Size);
+            draggablePiece.setFitHeight(Tile_Size);
+
+            draggablePiece.homeX = X_Side + 7*Tile_Size + X_Side/3f;
+            draggablePiece.setLayoutX(draggablePiece.homeX);
+            draggablePiece.homeY = 30 + 1.5*i*Tile_Size;
+            draggablePiece.setLayoutY(draggablePiece.homeY);
+            newPieces.add(draggablePiece);
+//            availablePieces.getChildren().add(tileImage);
+        }
+        handlePiece();
+    }
+
+    class DraggablePiece extends ImageView{
+        double homeX, homeY;
+        int rotation = 0;
+        double mouseX, mouseY; // the last known mouse positions
+//        boolean isFlipped = false;
+
+        DraggablePiece(Image image) {
+            super(image);
+
+        }
+
+        private void snapToHome() {
+            this.setLayoutX(homeX);
+            this.setLayoutY(homeY);
+            this.setOpacity(1.0);
+        }
+
+        private void rotate() {
+//            rotation = (rotation + 1) % 8;
+//            if (rotation > 4) {
+//                flipped = true;
+//            }
+//            if (flipped) {
+//                this.setScaleY(-1);
+//                System.out.println("flipped");
+//            }
+            rotation = (rotation+1) % 4;
+//            this.setRotate(rotation > 4 ? (rotation-4)*90 : rotation*90);
+            this.setRotate(rotation*90);
+        }
+
+        private void flipped() {
+//            if (!isFlipped) {
+              this.setScaleX(-1);
+//              isFlipped = true;
+//                System.out.println("flipped");
+//             }
+        }
+        private void flippedBack() {
+//            if (isFlipped) {
+                this.setScaleX(1);
+
+        }
+        void drag(double moveX, double moveY) {
+            setLayoutX(getLayoutX() + moveX);
+            setLayoutY(getLayoutY() + moveY);
+            setOpacity(0.5);
+            this.toFront();
+        }
+
+        boolean isOnBoard() {
+            return this.getLayoutX() > X_Side-Tile_Size && this.getLayoutX() < VIEWER_WIDTH-X_Side
+                    && this.getLayoutY() > Y_Side && this.getLayoutY() < VIEWER_HEIGHT-Y_Side;
+        }
 
     }
+
+    void handlePiece() {
+        availablePieces.getChildren().addAll(newPieces);
+        for (DraggablePiece piece : newPieces) {
+
+//            availablePieces.getChildren().add(piece);
+            piece.setOnScroll(e -> {
+                piece.rotate();
+            });
+
+            piece.setOnMouseClicked(e -> {
+                switch(e.getClickCount()) {
+                    case 2:
+                        piece.flipped();
+                    break;
+                    case 3:
+                        piece.flippedBack();
+                        break;
+                }
+            });
+
+            piece.setOnMousePressed(e -> {
+                piece.mouseX = e.getSceneX();
+                piece.mouseY = e.getSceneY();
+            });
+
+            piece.setOnMouseDragged(e -> {
+                piece.toFront();
+                double moveX = e.getSceneX() - piece.mouseX;
+                double moveY = e.getSceneY() - piece.mouseY;
+                piece.drag(moveX, moveY);
+                piece.mouseX = e.getSceneX();
+                piece.mouseY = e.getSceneY();
+            });
+
+            piece.setOnMouseReleased(e -> {
+                if (!piece.isOnBoard()) {
+                    piece.snapToHome();
+                }
+            });
+        }
+    }
+
+
     /**
      * Create a basic text field for input and a refresh button.
      */
     private void makeControls() {
+        Button diceRoll = new Button("Roll the dice");
+        diceRoll.setLayoutX(40);
+        diceRoll.setLayoutY(40);
+        diceRoll.setOnAction(e -> {
+            generateDicePieces();
+
+        });
+
         Label label1 = new Label("Placement:");
         textField = new TextField();
         textField.setPrefWidth(300);
@@ -176,45 +336,47 @@ public class Viewer extends Application {
         hb.setSpacing(10);
         hb.setLayoutX(130);
         hb.setLayoutY(VIEWER_HEIGHT - 50);
-        controls.getChildren().add(hb);
+        controls.getChildren().addAll(hb, diceRoll);
+    }
+
+
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        primaryStage.setTitle("StepsGame Viewer");
+        Scene scene = new Scene(root, VIEWER_WIDTH, VIEWER_HEIGHT);
+
+        Rectangle rectangle = new Rectangle(3*Tile_Size, 3*Tile_Size, Color.LIGHTGRAY);
+        rectangle.setX(X_Side+2*Tile_Size);
+        rectangle.setY(Y_Side +2*Tile_Size);
+
+        root.getChildren().addAll(rectangle, availablePieces, controls, Pieces);
+
+        makeControls();
+
+        Line[] row = new Line[8];
+        Line[] column = new Line[8];
+        for (int i = 0; i < 8; i ++){
+            row[i] = new Line();
+            column[i] = new Line();
+            row[i].setStartX(X_Side);
+            row[i].setStartY(Y_Side + i * Tile_Size);
+            row[i].setEndX(X_Side + 7 * Tile_Size);
+            row[i].setEndY(Y_Side + i * Tile_Size);
+            column[i].setStartX(X_Side + i * Tile_Size);
+            column[i].setStartY(Y_Side);
+            column[i].setEndX(X_Side + i * Tile_Size);
+            column[i].setEndY(Y_Side + 7 * Tile_Size);
+            root.getChildren().add(row[i]);
+            root.getChildren().add(column[i]);
         }
+        drawExits();
 
-        @Override
-        public void start(Stage primaryStage) throws Exception {
-            primaryStage.setTitle("StepsGame Viewer");
-            Scene scene = new Scene(root, VIEWER_WIDTH, VIEWER_HEIGHT);
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
 
-            Rectangle rectangle = new Rectangle(3*Tile_Size, 3*Tile_Size, Color.LIGHTGRAY);
-            rectangle.setX(X_Side+2*Tile_Size);
-            rectangle.setY(Y__Side+2*Tile_Size);
-            root.getChildren().add(rectangle);
 
-            root.getChildren().add(controls);
-            root.getChildren().add(Pieces);
-
-            makeControls();
-
-            Line[] row = new Line[8];
-            Line[] column = new Line[8];
-            for (int i = 0; i < 8; i ++){
-                row[i] = new Line();
-                column[i] = new Line();
-                row[i].setStartX(X_Side);
-                row[i].setStartY(Y__Side + i * Tile_Size);
-                row[i].setEndX(X_Side + 7 * Tile_Size);
-                row[i].setEndY(Y__Side + i * Tile_Size);
-                column[i].setStartX(X_Side + i * Tile_Size);
-                column[i].setStartY(Y__Side);
-                column[i].setEndX(X_Side + i * Tile_Size);
-                column[i].setEndY(Y__Side + 7 * Tile_Size);
-                root.getChildren().add(row[i]);
-                root.getChildren().add(column[i]);
-            }
-            drawExits();
-
-            primaryStage.setScene(scene);
-            primaryStage.show();
-        }
 
     public static void main(String[] args) {
         launch();
