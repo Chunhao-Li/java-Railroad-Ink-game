@@ -1,5 +1,6 @@
 package comp1110.ass2;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 public class RailroadInk {
@@ -268,6 +269,7 @@ public class RailroadInk {
         int exitScore = 0;
         int centerTilesScore = 0;
         int deadEndsScore = 0;
+//        exitScore = countExitsScore(tilePlacements);
         exitScore = countExitsScore(tilePlacements);
         deadEndsScore = countErrorsScore(tilePlacements);
         for (String placement : tilePlacements) {
@@ -290,9 +292,14 @@ public class RailroadInk {
         ArrayList<String> tiles = new ArrayList<>();
         Collections.addAll(tiles, tilePlacements);
 
+        HashMap<String, String> tilesMap = new HashMap<>(); // for quick locating pieces
+        for (String tile : tiles) {
+            tilesMap.put(tile.substring(2, 4),tile);
+        }
+
         int count = 0;
         int sum = 0;
-        boolean flag = true;
+        boolean flag = true;    // This flag determines whether this route can be expanded
 
         // Use HashSets to remove duplicates
         HashSet<String> b2Tiles = new HashSet<>();
@@ -301,70 +308,147 @@ public class RailroadInk {
 
         while (!tiles.stream().allMatch(RailroadInk::isB2Tile))
         {
-        while (flag) {
-            for (int i = 0; i < tiles.size(); i++) {
-                String tile = tiles.get(i);
+            while (flag) {
                 if (route.isEmpty()) {
-                    route.add(tile);
-                    connectedTiles.add(tile);
-                }
-
-                for (String tileCollected : route) {
-                    if (!areConnectedNeighbours(tileCollected, tile)) continue;
-                    if (!isB2Tile(tile)) {
-                        connectedTiles.add(tile);
-                        continue;
+                    for (String tile : tiles) {
+                        if (isExitConnected(tile) && !isB2Tile(tile)) {
+                                route.add(tile);
+                                connectedTiles.add(tile);
+                                break;
+                        }
+                        else if (isExitConnected(tile) && isB2Tile(tile)) {
+                                ArrayList<String> neighbours= getNeighbours(tile,tilesMap);
+                                if (neighbours.size() == 1) {
+                                    route.add(tile);
+                                    connectedTiles.add(tile);
+                                    break;
+                                }
+                            }
                     }
-                    b2Tiles.add(tile);
-                    for (String tile1 : tiles) {
-                        if (areConnectedNeighbours(tile1, tile) &&
-                            (tile.charAt(2) == tileCollected.charAt(2) ?
-                            tile.charAt(2) == tile1.charAt(2) :
-                            tile.charAt(3) == tile1.charAt(3)))
-                                connectedTiles.add(tile1);
+
+                }
+                tiles.removeAll(connectedTiles);
+                if (route.isEmpty()) {
+                    route.add(tiles.stream().filter(RailroadInk::isExitConnected).findFirst().orElseThrow());
+                }
+                for (String tile : tiles) {
+                    for (String tileCollected : route) {
+                        if (!areConnectedNeighbours(tileCollected, tile)) continue;
+                        if (!isB2Tile(tile)) {
+                            connectedTiles.add(tile);
+                            break;
+                        }
+                        searchSameLine(tileCollected, tile, connectedTiles, b2Tiles, tilesMap);
+
+                    }
+
+                }
+                flag = false;
+
+                // Update route and tiles
+                route.addAll(connectedTiles);
+                tiles.removeAll(connectedTiles);
+                for (String tile : connectedTiles) {
+                    tilesMap.remove(tile.substring(2, 4));
+                }
+                connectedTiles.clear();
+
+                // Check whether the current route can be expanded
+                for (String t : tiles) {
+                    for (String placed : route) {
+                        if (areConnectedNeighbours(t, placed) && !isB2Tile(t)) {
+                            flag = true;
+                            break;
+                        }
                     }
                 }
 
-            }
-            flag = false;
+                // Count exits and start a new route
+                if (!flag) {
+                    route.addAll(b2Tiles);
+                    b2Tiles.clear();
+                    for (String t : route) {
+                        if (isExitConnected(t))
+                            count++;
+                    }
+                    route.clear();
 
-            // Update route and tiles
-            route.addAll(connectedTiles);
-            tiles.removeAll(connectedTiles);
-            connectedTiles.clear();
-
-            // Check whether the current route can be expanded
-            for (String t : tiles) {
-                for (String t1 : route) {
-                    if (areConnectedNeighbours(t, t1) && !isB2Tile(t))
-                        flag = true;
+                    if (count == 12)
+                        sum += 45;
+                    else if (count >= 2)
+                        sum += count * 4 - 4;
+                    count = 0;
                 }
             }
-
-            // Count exits and start a new route
-            if (!flag) {
-                route.addAll(b2Tiles);
-                b2Tiles.clear();
-                for (String t : route) {
-                    if (isExitConnected(t))
-                        count++;
-                }
-                route.clear();
-
-                if (count == 12)
-                    sum += 45;
-                else if (count >= 2)
-                    sum += count * 4 - 4;
-                count = 0;
-            }
+            flag = true;
         }
-        flag = true;
-    }
         return sum;
 
     }
 
-    public static boolean isB2Tile(String placement) {
+    /**
+     * This method is to get the tiles neighbours if they are existed
+     * @param tile the target tile
+     * @param tilesMap a HashMap whose key is the position, whose value is the tile placement string
+     * @return an ArrayList of all neighbours' positions
+     */
+    private static ArrayList<String> getNeighbours(String tile, HashMap<String, String> tilesMap) {
+        var position = tile.substring(2, 4);
+        ArrayList<String> result = new ArrayList<>();
+        var row = position.charAt(0);
+        var col = position.charAt(1);
+        for (char i = row == 'A' ? row : (char) (row - 1); i <= row + 1; i++) {
+            for (char j = col == '0' ? col : (char) (col - 1); j <= col + 1; j++) {
+                if (i > 'G' || j > '6') {
+                    continue;
+                }
+                if (Math.abs(i - row) == 1 && Math.abs(j - col) == 1) {
+                    continue;
+                }
+                if (i == row && j == col) {
+                    continue;
+                }
+                result.add(String.valueOf(i) + String.valueOf(j));
+            }
+        }
+        result.removeIf(t->!tilesMap.containsKey(t));
+        return result;
+    }
+
+    /**
+     * This method is to search for more connected tiles after finding the B2 tile
+     * @param lastTile the previous tile connected to the B2 tile
+     * @param b2Tile the target B2 tile
+     * @param connectedTiles a HashSet which contain the tiles of this route
+     * @param b2Tiles a HashSet which contain the B2 tiles of the route
+     * @param tilesMap a HashMap whose key is the position, whose value is the tile placement string
+     */
+    private static void searchSameLine(String lastTile, String b2Tile, HashSet<String> connectedTiles,
+                                         HashSet<String> b2Tiles, HashMap<String, String> tilesMap) {
+        b2Tiles.add(b2Tile);
+        char row, col;
+        if (b2Tile.charAt(2) == lastTile.charAt(2)) {
+            row = b2Tile.charAt(2);
+            col = b2Tile.charAt(3) > lastTile.charAt(3) ?(char) (b2Tile.charAt(3)+1) :
+                    (char) (b2Tile.charAt(3) -1);
+        }
+        else {
+            col = b2Tile.charAt(3);
+            row = b2Tile.charAt(2) > lastTile.charAt(2) ? (char) (b2Tile.charAt(2)+1) :
+                    (char) (b2Tile.charAt(2)-1);
+        }
+        String position = String.valueOf(row) + String.valueOf(col);
+        String tile = tilesMap.get(position);
+        if (null != tile && areConnectedNeighbours(tile, b2Tile)) {
+            if (!isB2Tile(tile)) {
+                connectedTiles.add(tile);
+            } else {
+                searchSameLine(b2Tile, tile, connectedTiles, b2Tiles, tilesMap);
+            }
+        }
+    }
+
+    private static boolean isB2Tile(String placement) {
         return placement.charAt(0) == 'B' && placement.charAt(1) == '2';
     }
 
@@ -374,7 +458,7 @@ public class RailroadInk {
      * @param tilePlacements an array of string which contains tile placements
      * @return the number of errors also regarded as scores.
      */
-    public static int countErrorsScore(String[] tilePlacements) {
+    private static int countErrorsScore(String[] tilePlacements) {
         String[] tiles = Arrays.copyOf(tilePlacements, tilePlacements.length);
         for (int i = 0; i < tiles.length; i++) {
             tiles[i] = getShape(tilePlacements[i].toCharArray(), tilePlacements[i].charAt(4))
