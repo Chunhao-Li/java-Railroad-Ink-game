@@ -53,6 +53,15 @@ public class RailroadInk {
             if (boardString.charAt(i) == 'S') {count++;}
             if (count > 3) {return false;}
         }
+        List<String> positions = new ArrayList<>();
+        for (int i = boardString.length()-5; i >= 0; i -= 5) {
+            String position = boardString.substring(i+2, i+4);
+            if (positions.contains(position)) {
+                return false;
+            } else {
+                positions.add(position);
+            }
+        }
         return true;
 
     }
@@ -607,7 +616,7 @@ public class RailroadInk {
      * @param moves a List of String.
      * @return the longest string
      */
-    static String max(List<String> moves) {
+    private static String max(List<String> moves) {
         String longestMove = "";
         for (String move :moves) {
             if (move.length() > longestMove.length()) {
@@ -623,7 +632,7 @@ public class RailroadInk {
      * @param tile a String of two chars which represent a tile
      * @return a List of Characters which contain possible orientations
      */
-    private static List<Character> getOrientations(String tile) {
+    public static List<Character> getOrientations(String tile) {
             List<Character> orientations = new ArrayList<>();
             switch (tile) {
                 case "B1":
@@ -645,12 +654,12 @@ public class RailroadInk {
 
 
     /**
-     * This function is to check whether two neighbouring tile are validly connected for a new placement
+     * This function is to check whether two neighbouring tiles are validly connected for a new placement string
      * @param boardString a string represents game state
      * @param newPlacementString a sequence of new placements
      * @return boolean
      */
-    static boolean areNeighboursValid(String boardString, String newPlacementString) {
+    public static boolean areNeighboursValid(String boardString, String newPlacementString) {
         HashMap<String, String> placed = new HashMap<>();
         for (int i = 0; i+5 <= boardString.length(); i+=5) {
             String grid = boardString.substring(i+2, i+4);
@@ -712,7 +721,7 @@ public class RailroadInk {
      * @param boardString a sequence of current game state
      * @return a List of String which contains all available grids
      */
-    static List<String> getUnusedGrids(String boardString) {
+    public static List<String> getUnusedGrids(String boardString) {
         List<String> board = new ArrayList<>();
         for (char i = 'A'; i <= 'G'; i++) {
             for (char j = '0'; j <= '6'; j++) {

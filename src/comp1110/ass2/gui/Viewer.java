@@ -5,19 +5,21 @@ import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A very simple viewer for tile placements in the Railroad Ink game.
@@ -43,6 +45,8 @@ public class Viewer extends Application {
     private String boardString = "";
     private int sTileTotal = 0;
     private int sTilePerTurn = 0;
+    private String dices = "";
+    private int diceRollTimes = 0;
 
 
     /**
@@ -167,9 +171,10 @@ public class Viewer extends Application {
      * Generate 4 pieces via dice roll and 6 S tiles
      */
     private void generateDicePieces() {
+        diceRollTimes++;
         sTilePerTurn = 0;
         generatingPieces.getChildren().clear();
-        String dices = RailroadInk.generateDiceRoll();
+        dices = RailroadInk.generateDiceRoll();
         String[] eachDice = new String[4];
         for (int i = 0; i+2 <= dices.length(); i+=2) {
             eachDice[i/2] = dices.substring(i, i+2);
@@ -201,7 +206,10 @@ public class Viewer extends Application {
         handlePiece();
     }
 
-    class DraggablePiece extends ImageView{
+    /**
+     * Construct a draggable piece for play
+     */
+    class DraggablePiece extends ImageView {
         double homeX, homeY;
         int rotation = 0;
         double mouseX, mouseY; // the last known mouse positions
@@ -234,7 +242,6 @@ public class Viewer extends Application {
         private void rotate() {
             rotation = (rotation+1) % 4;
             this.setRotate(rotation*90);
-            System.out.println(rotation);
         }
 
         private void flipped() {
@@ -245,8 +252,6 @@ public class Viewer extends Application {
         private void flippedBack() {
             this.setScaleX(1);
             isFlipped = false;
-            System.out.println("flippedBack");
-
         }
         void drag(double moveX, double moveY) {
             setLayoutX(getLayoutX() + moveX);
@@ -275,9 +280,11 @@ public class Viewer extends Application {
             if (name.charAt(0) == 'S') {
                 sTilePerTurn++;
                 sTileTotal++;
+            } else {
+                int i = dices.indexOf(name);
+                dices = i != -1 ? dices.substring(0, i)+ dices.substring(i+2, dices.length()) : dices;
             }
-            System.out.println("sTilePerTurn: " + sTilePerTurn);
-            System.out.println("sTileTotal: " + sTileTotal);
+
         }
 
         boolean isValid() {
@@ -292,11 +299,12 @@ public class Viewer extends Application {
                     return false;
                 }
             }
-            boardString += piecePlacement;
-            if (RailroadInk.isValidPlacementSequence(boardString)) {
+            if (RailroadInk.isBoardStringWellFormed(boardString+piecePlacement)
+            && RailroadInk.isValidPlacementSequence(boardString+piecePlacement)
+            && RailroadInk.areNeighboursValid(boardString, piecePlacement)) {
+                boardString += piecePlacement;
                 return true;
             } else {
-                boardString = boardString.substring(0, boardString.length()-5);
                 return false;
             }
 
@@ -304,7 +312,40 @@ public class Viewer extends Application {
 
     }
 
+    private boolean hasValidPlacement() {
+        List<String> unUsedGrids = RailroadInk.getUnusedGrids(boardString);
+        Set<String> tiles = new HashSet<>();
+        for (int i = 0; i+2 <= dices.length(); i+=2) {
+            tiles.add(dices.substring(i, i+2));
+        }
 
+        if (sTilePerTurn == 0 && sTileTotal < 3) {
+            for (int i = 0; i < 6; i++ ) {
+                tiles.add("S" + i);
+            }
+        }
+        for (String tile: tiles) {
+            List<Character> orientations = RailroadInk.getOrientations(tile);
+            for (String grid : unUsedGrids) {
+                for (char o : orientations) {
+                    String placement = tile+grid+String.valueOf(o);
+                    if (RailroadInk.isValidPlacementSequence(boardString+placement) &&
+                        RailroadInk.areNeighboursValid(boardString, placement)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * This method is used to control DraggablePiece :
+     * - Scroll on the tile: rotate it 90 degrees clockwise
+     * - Double click: flip the tile (if not flipped)
+     * - Triple click: flip back (if flipped)
+     * - Drag and release the tile on the board to place it
+     */
     private void handlePiece() {
         for (Node node : generatingPieces.getChildren()) {
             DraggablePiece piece = (DraggablePiece) node;
@@ -347,6 +388,17 @@ public class Viewer extends Application {
                 } else {
                     piece.snapToHome();
                 }
+
+                if (diceRollTimes == 7 && !hasValidPlacement()) {
+                    Alert alert = new Alert(Alert.AlertType.WARNING, "No more placement", ButtonType.OK);
+                    alert.showAndWait();
+                    if (alert.getResult() == ButtonType.OK) {
+                        int score = RailroadInk.getBasicScore(boardString);
+                        Text t = new Text(VIEWER_WIDTH/2, (double) Y_Side/2, "Basic Score: "+score);
+                        t.setFont(Font.font("Verdana", 20));
+                        root.getChildren().add(t);
+                    }
+                }
             });
 
         }
@@ -362,7 +414,13 @@ public class Viewer extends Application {
         diceRoll.setLayoutX(40);
         diceRoll.setLayoutY(40);
         diceRoll.setOnAction(e -> {
-            generateDicePieces();
+            if (diceRollTimes == 7) {
+                Alert alert = new Alert(Alert.AlertType.WARNING, "7 rounds reached");
+                alert.showAndWait();
+            } else {
+
+                generateDicePieces();
+            }
 
         });
 
@@ -401,6 +459,7 @@ public class Viewer extends Application {
         Rectangle rectangle = new Rectangle(3*Tile_Size, 3*Tile_Size, Color.LIGHTGRAY);
         rectangle.setX(X_Side+2*Tile_Size);
         rectangle.setY(Y_Side +2*Tile_Size);
+
 
         root.getChildren().addAll(rectangle, generatingPieces, placedPieces, controls, Pieces);
 
