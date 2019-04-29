@@ -354,11 +354,12 @@ public class RailroadInk {
                 connectedTiles.clear();
 
                 // Check whether the current route can be expanded
+                outerLoop:
                 for (String t : tiles) {
                     for (String placed : route) {
                         if (areConnectedNeighbours(t, placed) && !isB2Tile(t)) {
                             flag = true;
-                            break;
+                            break outerLoop;
                         }
                     }
                 }
@@ -546,7 +547,7 @@ public class RailroadInk {
         }
 
 
-        List<String> unUsedGridsBase = getUnusedGrids(boardString);
+        List<String> unUsedGridsBase = getUnusedGrids(boardString); // this List contains the board positions of unused grids
 
         List<String> validMoves = new ArrayList<>();
         int count = 0;
@@ -554,44 +555,37 @@ public class RailroadInk {
 
             List<String> unUsedGrids = new ArrayList<>(unUsedGridsBase);
 
-            HashMap<Integer, List<StringBuilder>> movesDP = new HashMap<>();
+            HashMap<Integer, List<StringBuilder>> movesCollection = new HashMap<>();    // key: the order of the move
             List<StringBuilder> base =  new ArrayList<>();
             base.add(new StringBuilder(""));
-            movesDP.put(-1, base);
-            for (int t = 0; t < tiles.size(); t++) {
-                String tile = tiles.get(t);
-                boolean placed = false;
-                List<StringBuilder> lastMoves = movesDP.get(t-1);
-                for (int i = 0; i < unUsedGrids.size(); i++) {
-                    String unUsedGrid = unUsedGrids.get(i);
+            movesCollection.put(-1, base);
+            for (int i = 0; i < tiles.size(); i++) {
+                String tile = tiles.get(i);
+                List<StringBuilder> lastMoves = movesCollection.get(i-1);
+                outLoop:
+                for (String unUsedGrid : unUsedGrids) {
                     List<Character> orientations = getOrientations(tile);
                     for (char o : orientations) {
                         String aMove = tile + unUsedGrid + o;
                         if (null != lastMoves) {
                             for (StringBuilder lastMove : lastMoves) {
-                                if (isValidPlacementSequence(boardString + lastMove.append(aMove).toString())) {
-                                    movesDP.computeIfAbsent(t, k -> new ArrayList<>());
-                                    List<StringBuilder> currentMoves = movesDP.get(t);
-                                    StringBuilder currentMove = new StringBuilder(lastMove.toString());
-
-                                    currentMoves.add(currentMove);
-                                    placed = true;
+                                if (isValidPlacementSequence(boardString + lastMove.toString() + aMove)) {
+                                    movesCollection.computeIfAbsent(i, k -> new ArrayList<>());
+                                    List<StringBuilder> currentMoves = movesCollection.get(i);
+                                    currentMoves.add(new StringBuilder(lastMove+aMove));
+                                    unUsedGrids.remove(unUsedGrid);
+                                    break outLoop;
 
                                 }
-                                lastMove.delete(lastMove.length() - 5, lastMove.length());
                             }
                         }
                     }
-                    if (placed) {
-                        unUsedGrids.remove(i);
-                        break;
-                    }
+
                 }
             }
-            String firstTile = tiles.remove(0);
-            tiles.add(firstTile);
+            tiles.add(tiles.remove(0));
             HashSet<StringBuilder> allMoves = new HashSet<>();
-            for (Map.Entry<Integer, List<StringBuilder>> entry : movesDP.entrySet()) {
+            for (Map.Entry<Integer, List<StringBuilder>> entry : movesCollection.entrySet()) {
                 allMoves.addAll(entry.getValue());
             }
             for (StringBuilder m : allMoves) {
@@ -629,28 +623,29 @@ public class RailroadInk {
      * @param tile a String of two chars which represent a tile
      * @return a List of Characters which contain possible orientations
      */
-    static List<Character> getOrientations(String tile) {
+    private static List<Character> getOrientations(String tile) {
             List<Character> orientations = new ArrayList<>();
-            if (tile.equals("B1")) {
-                for (char i = '0'; i <= '7'; i++) {
-                    orientations.add(i);
-                }
-            }
-            else if (tile.equals("A1") || tile.equals("A4") || tile.equals("B2")) {
-                orientations.add('0');
-                orientations.add('1');
-            }
-            else {
-                for (char i = '0'; i <= '3'; i++) {
-                    orientations.add(i);
-                }
+            switch (tile) {
+                case "B1":
+                    for (char i = '0'; i <= '7'; i++) {
+                        orientations.add(i);
+                    }
+                    break;
+                case "A1": case "A4": case "B2":
+                    orientations.add('0');
+                    orientations.add('1');
+                    break;
+                default:
+                    for (char i = '0'; i <= '3'; i++) {
+                        orientations.add(i);
+                    }
             }
             return orientations;
     }
 
 
     /**
-     * This function is to check whether two neighbouring tile are validly connected
+     * This function is to check whether two neighbouring tile are validly connected for a new placement
      * @param boardString a string represents game state
      * @param newPlacementString a sequence of new placements
      * @return boolean
