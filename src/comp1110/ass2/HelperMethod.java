@@ -346,4 +346,137 @@ public class HelperMethod {
         }
         return errors;
     }
+
+    /**
+     * Returns the longest string in the list.
+     * @author Frederick Li
+     * @param moves a List of String.
+     * @return the longest string
+     */
+     static String max(List<String> moves) {
+        String longestMove = "";
+        for (String move :moves) {
+            if (move.length() > longestMove.length()) {
+                longestMove = move;
+            }
+        }
+        return longestMove;
+    }
+
+
+    /**
+     * Get all possible orientations for a specific tile after fixing orientations.
+     * @author Frederick Li
+     * @param tile a String of two chars which represent a tile
+     * @return a List of Characters which contain possible orientations
+     */
+     public static List<Character> getOrientations(String tile) {
+        List<Character> orientations = new ArrayList<>();
+        switch (tile) {
+            case "B1":
+                for (char i = '0'; i <= '7'; i++) {
+                    orientations.add(i);
+                }
+                break;
+            case "A1": case "A4": case "B2":
+                orientations.add('0');
+                orientations.add('1');
+                break;
+            default:
+                for (char i = '0'; i <= '3'; i++) {
+                    orientations.add(i);
+                }
+        }
+        return orientations;
+    }
+
+
+    /**
+     * This method is to check whether all neighbouring tiles
+     *      are validly connected for a new placement string
+     * @author Frederick Li
+     * @param boardString a string represents game state
+     * @param newPlacementString a sequence of new placements
+     * @return boolean
+     */
+     public static boolean areNeighboursValid(String boardString, String newPlacementString) {
+        HashMap<String, String> placed = new HashMap<>();
+        for (int i = 0; i+5 <= boardString.length(); i+=5) {
+            String grid = boardString.substring(i+2, i+4);
+            placed.put(grid, boardString.substring(i, i + 5));
+        }
+
+        List<String> newPlacements = new ArrayList<>();
+        for (int i = 0; i+5 <= newPlacementString.length(); i += 5) {
+            newPlacements.add(newPlacementString.substring(i, i+5));
+        }
+
+        for (String placement : newPlacements) {
+            char row = placement.charAt(2);
+            char col = placement.charAt(3);
+            for (char i = row == 'A' ? row : (char) (row - 1); i <= row + 1; i++) {
+                for (char j = col == '0' ? col : (char) (col - 1); j <= col + 1; j++) {
+                    if (i > 'G' || j > '6') {
+                        continue;
+                    }
+                    if (Math.abs(i - row) == 1 && Math.abs(j - col) == 1) {
+                        continue;
+                    }
+                    if (i == row && j == col) {
+                        continue;
+                    }
+                    String grid = String.valueOf(i) + String.valueOf(j);
+                    if (placed.containsKey(grid)) {
+                        String neighbour = placed.get(grid);
+                        String placementShape = getShape(placement.toCharArray(), placement.charAt(4));
+                        String neighbourShape = getShape(neighbour.toCharArray(), neighbour.charAt(4));
+                        if (row == i && (col < j
+                                ? (placementShape.charAt(3) != '#' && neighbourShape.charAt(1) != '#' &&
+                                placementShape.charAt(3) != neighbourShape.charAt(1))
+                                : (placementShape.charAt(1) != '#' && neighbourShape.charAt(3) != '#' &&
+                                placementShape.charAt(1) != neighbourShape.charAt(3)))) {
+                            return false;
+                        }
+
+                        if (col == j && (row < i
+                                ? (placementShape.charAt(2) != '#' && neighbourShape.charAt(0) != '#' &&
+                                placementShape.charAt(2) != neighbourShape.charAt(0))
+                                : (placementShape.charAt(0) != '#' && neighbourShape.charAt(2) != '#' &&
+                                placementShape.charAt(0) != neighbourShape.charAt(2)))) {
+                            return false;
+                        }
+
+                    }
+                }
+            }
+            placed.put(placement.substring(2, 4), placement);
+        }
+
+        return true;
+
+    }
+
+    /**
+     * Get all unplaced grids.
+     * @author Frederick Li
+     * @param boardString a sequence of current game state
+     * @return a List of String which contains all available grids
+     */
+     public static List<String> getUnusedGrids(String boardString) {
+        List<String> board = new ArrayList<>();
+        for (char i = 'A'; i <= 'G'; i++) {
+            for (char j = '0'; j <= '6'; j++) {
+                String grid = String.valueOf(i) + String.valueOf(j);
+                board.add(grid);
+            }
+        }
+        List<String> usedGrids = new ArrayList<>();
+        for (int i = 0; i+5 <= boardString.length(); i+=5) {
+            String grid = boardString.substring(i+2, i+4);
+            usedGrids.add(grid);
+        }
+
+        board.removeAll(usedGrids);
+        return board;
+    }
 }

@@ -10,4 +10,5 @@ import org.junit.runners.Suite;
     IsBoardStringWellFormedTest.class, IsTilePlacementWellFormedTest.class,
     IsValidPlacementSequenceTest.class})
 public class TestSuiteMaster {
+
 }
