@@ -304,7 +304,7 @@ public class Viewer extends Application {
             }
             if (RailroadInk.isBoardStringWellFormed(boardString+piecePlacement)
             && RailroadInk.isValidPlacementSequence(boardString+piecePlacement)
-            && RailroadInk.areNeighboursValid(boardString, piecePlacement)) {
+            && HelperMethod.areNeighboursValid(boardString, piecePlacement)) {
                 boardString += piecePlacement;
                 return true;
             } else {
@@ -316,7 +316,7 @@ public class Viewer extends Application {
     }
 
     private boolean hasValidPlacement() {
-        List<String> unUsedGrids = RailroadInk.getUnusedGrids(boardString);
+        List<String> unUsedGrids = HelperMethod.getUnusedGrids(boardString);
         Set<String> tiles = new HashSet<>();
         for (int i = 0; i+2 <= dices.length(); i+=2) {
             tiles.add(dices.substring(i, i+2));
@@ -328,12 +328,12 @@ public class Viewer extends Application {
             }
         }
         for (String tile: tiles) {
-            List<Character> orientations = RailroadInk.getOrientations(tile);
+            List<Character> orientations = HelperMethod.getOrientations(tile);
             for (String grid : unUsedGrids) {
                 for (char o : orientations) {
                     String placement = tile+grid+String.valueOf(o);
                     if (RailroadInk.isValidPlacementSequence(boardString+placement) &&
-                        RailroadInk.areNeighboursValid(boardString, placement)) {
+                        HelperMethod.areNeighboursValid(boardString, placement)) {
                         return true;
                     }
                 }
