@@ -2,6 +2,7 @@ package comp1110.ass2.gui;
 
 import comp1110.ass2.HelperMethod;
 import comp1110.ass2.RailroadInk;
+import static comp1110.ass2.HelperMethod.*;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Group;
@@ -48,8 +49,11 @@ public class Viewer extends Application {
     private String boardString = "";
     private int sTileTotal = 0;
     private int sTilePerTurn = 0;
+    private List<DraggablePiece> sTilesNotPlaced = new ArrayList<>();
     private String dices = "";
     private int diceRollTimes = 0;
+    private Text scoreInfo = null;
+    private Text turnInfo = null;
 
 
     /**
@@ -174,7 +178,19 @@ public class Viewer extends Application {
      * Generate 4 pieces via dice roll and 6 S tiles
      */
     private void generateDicePieces() {
+        if (!dices.isEmpty() && hasValidPlacement()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING, "You must place regular tiles as many as you can!");
+            alert.showAndWait();
+            return;
+        }
         diceRollTimes++;
+        if (diceRollTimes > 1) {
+            root.getChildren().remove(turnInfo);
+        }
+        turnInfo = new Text(X_Side+Tile_Size,  Y_Side/2f, "Turn: " + diceRollTimes);
+        turnInfo.setFont(Font.font("Verdana", 20));
+        root.getChildren().add(turnInfo);
+
         sTilePerTurn = 0;
         generatingPieces.getChildren().clear();
         dices = RailroadInk.generateDiceRoll();
@@ -194,17 +210,22 @@ public class Viewer extends Application {
             draggablePiece.setLayoutY(draggablePiece.homeY);
             generatingPieces.getChildren().add(draggablePiece);
         }
-        for (int i = 0; i < 6; i++ ) {
-            Image tileImage = new Image(Viewer.class.getResource(
-                    URI_BASE + "S" + i + ".png").toString());
-            DraggablePiece draggablePiece = new DraggablePiece(tileImage, "S"+i);
-            draggablePiece.setFitWidth(Tile_Size);
-            draggablePiece.setFitHeight(Tile_Size);
-            draggablePiece.homeX = X_Side + 7*Tile_Size + X_Side/3f;
-            draggablePiece.setLayoutX(draggablePiece.homeX);
-            draggablePiece.homeY = 30 + 1.5*i*Tile_Size;
-            draggablePiece.setLayoutY(draggablePiece.homeY);
-            generatingPieces.getChildren().add(draggablePiece);
+        if (diceRollTimes == 1) {
+            for (int i = 0; i < 6; i++) {
+                Image tileImage = new Image(Viewer.class.getResource(
+                        URI_BASE + "S" + i + ".png").toString());
+                DraggablePiece draggablePiece = new DraggablePiece(tileImage, "S" + i);
+                draggablePiece.setFitWidth(Tile_Size);
+                draggablePiece.setFitHeight(Tile_Size);
+                draggablePiece.homeX = X_Side + 7 * Tile_Size + X_Side / 3f;
+                draggablePiece.setLayoutX(draggablePiece.homeX);
+                draggablePiece.homeY = 30 + 1.5 * i * Tile_Size;
+                draggablePiece.setLayoutY(draggablePiece.homeY);
+                sTilesNotPlaced.add(draggablePiece);
+                generatingPieces.getChildren().add(draggablePiece);
+            }
+        } else {
+            generatingPieces.getChildren().addAll(sTilesNotPlaced);
         }
         handlePiece();
     }
@@ -265,7 +286,7 @@ public class Viewer extends Application {
 
         boolean isOnBoard() {
             return this.getLayoutX() > X_Side-Tile_Size && this.getLayoutX() < VIEWER_WIDTH-X_Side
-                    && this.getLayoutY() > Y_Side && this.getLayoutY() < VIEWER_HEIGHT-Y_Side;
+                    && this.getLayoutY() > Y_Side-Tile_Size && this.getLayoutY() < VIEWER_HEIGHT-Y_Side;
         }
 
         void setPosition() {
@@ -283,9 +304,10 @@ public class Viewer extends Application {
             if (name.charAt(0) == 'S') {
                 sTilePerTurn++;
                 sTileTotal++;
+                sTilesNotPlaced.remove(this);
             } else {
                 int i = dices.indexOf(name);
-                dices = i != -1 ? dices.substring(0, i)+ dices.substring(i+2, dices.length()) : dices;
+                dices = dices.substring(0, i) + dices.substring(i+2, dices.length());
             }
 
         }
@@ -297,15 +319,22 @@ public class Viewer extends Application {
             char row = (char) (Math.round((currY-Y_Side) / Tile_Size) + 'A') ;
             String orientation = isFlipped ? String.valueOf(rotation+4) : String.valueOf(rotation);
             String piecePlacement = name + String.valueOf(row) + String.valueOf(col) + orientation;
-            if (name.charAt(0) == 'S') {
-                if (sTileTotal >= 3 || sTilePerTurn == 1) {
+            if (name.charAt(0) == 'S' ) {
+                if (sTileTotal >= 3) {
+                Alert alert = new Alert(Alert.AlertType.WARNING, "You have used 3 special tiles in this game!");
+                alert.showAndWait();
+                    return false;}
+                if (sTilePerTurn == 1) {
+                    Alert alert = new Alert(Alert.AlertType.WARNING, "You can only use 1 special tile each turn!");
+                    alert.showAndWait();
                     return false;
                 }
             }
-            if (RailroadInk.isBoardStringWellFormed(boardString+piecePlacement)
-            && RailroadInk.isValidPlacementSequence(boardString+piecePlacement)
-            && HelperMethod.areNeighboursValid(boardString, piecePlacement)) {
+            if (RailroadInk.isValidPlacementSequence(boardString+piecePlacement)
+                && HelperMethod.areNeighboursValid(boardString, piecePlacement)
+           ) {
                 boardString += piecePlacement;
+
                 return true;
             } else {
                 return false;
@@ -315,18 +344,19 @@ public class Viewer extends Application {
 
     }
 
-    private boolean hasValidPlacement() {
+    private boolean hasValidPlacement(boolean sIncluded) {
         List<String> unUsedGrids = HelperMethod.getUnusedGrids(boardString);
         Set<String> tiles = new HashSet<>();
         for (int i = 0; i+2 <= dices.length(); i+=2) {
             tiles.add(dices.substring(i, i+2));
         }
 
-        if (sTilePerTurn == 0 && sTileTotal < 3) {
-            for (int i = 0; i < 6; i++ ) {
-                tiles.add("S" + i);
+        if (sIncluded && sTileTotal < 3 && sTilePerTurn == 0) {
+            for (DraggablePiece sTileDraggable : sTilesNotPlaced) {
+                tiles.add(sTileDraggable.name);
             }
         }
+
         for (String tile: tiles) {
             List<Character> orientations = HelperMethod.getOrientations(tile);
             for (String grid : unUsedGrids) {
@@ -392,14 +422,28 @@ public class Viewer extends Application {
                     piece.snapToHome();
                 }
 
-                if (diceRollTimes == 7 && !hasValidPlacement()) {
-                    Alert alert = new Alert(Alert.AlertType.WARNING, "No more placement", ButtonType.OK);
-                    alert.showAndWait();
-                    if (alert.getResult() == ButtonType.OK) {
-                        int score = RailroadInk.getBasicScore(boardString);
-                        Text t = new Text(VIEWER_WIDTH/2, (double) Y_Side/2, "Basic Score: "+score);
-                        t.setFont(Font.font("Verdana", 20));
-                        root.getChildren().add(t);
+                if (diceRollTimes == 7 ) {
+                    if (!hasValidPlacement(true)) {
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION,
+                                "No more placement, press OK to get the score", ButtonType.OK);
+                        alert.showAndWait();
+                        if (alert.getResult() == ButtonType.OK) {
+                            int score = RailroadInk.getAdvancedScore(boardString);
+                            scoreInfo = new Text(VIEWER_WIDTH / 2, (double) Y_Side / 2, "Advanced Score: " + score);
+                            scoreInfo.setFont(Font.font("Verdana", 20));
+                            root.getChildren().add(scoreInfo);
+                        }
+                    } else if (!hasValidPlacement(false) && hasValidPlacement(true)) {
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION,
+                                "You can still place special tile, do you want to end the game?",
+                                ButtonType.YES, ButtonType.NO);
+                        alert.showAndWait();
+                        if (alert.getResult() == ButtonType.YES) {
+                            int score = RailroadInk.getAdvancedScore(boardString);
+                            scoreInfo = new Text(VIEWER_WIDTH / 2, (double) Y_Side / 2, "Advanced Score: " + score);
+                            scoreInfo.setFont(Font.font("Verdana", 20));
+                            root.getChildren().add(scoreInfo);
+                        }
                     }
                 }
             });
@@ -433,6 +477,13 @@ public class Viewer extends Application {
         clear.setOnAction(e -> {
             generatingPieces.getChildren().clear();
             placedPieces.getChildren().clear();
+            diceRollTimes = 0;
+            boardString = "";
+            sTileTotal = 0;
+            dices = "";
+            sTilePerTurn = 0;
+            root.getChildren().removeAll(scoreInfo, turnInfo);
+
         });
 
         Label label1 = new Label("Placement:");
