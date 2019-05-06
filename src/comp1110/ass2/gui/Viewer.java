@@ -453,6 +453,19 @@ public class Viewer extends Application {
     }
 
 
+    private void setKeyListener(Scene s) {
+        /* create a handlers to monitor the key event */
+        s.setOnKeyPressed(event -> {
+            Object obj = event.getCode();
+            if (obj == KeyCode.BACK_SPACE) {
+                // exit game when backspace is pressed
+                Platform.exit();
+            } else if (obj == KeyCode.P) {
+                //pause here
+                event.consume();
+            }
+        });
+    }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
