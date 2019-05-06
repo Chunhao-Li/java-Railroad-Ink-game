@@ -93,13 +93,14 @@ public class HelperMethod {
     /**
      * Count the total scores of connected exits of all routes
      * @author Frederick Li
-     * @param tilePlacements an array of string which contains tile placements
+     * @param boardString a string represents the game state
      * @return the score of all routes based on their connected exits
      */
-     static int countExitsScore(String[] tilePlacements) {
-        // Avoid modifying the original ArrayList
-        ArrayList<String> tiles = new ArrayList<>();
-        Collections.addAll(tiles, tilePlacements);
+     public static int countExitsScore(String boardString) {
+         ArrayList<String> tiles = new ArrayList<>();
+         for (int i = 0; i+5 <= boardString.length(); i += 5) {
+             tiles.add(boardString.substring(i, i+5));
+         }
 
         HashMap<String, String> tilesMap = new HashMap<>(); // for quick locating pieces
         for (String tile : tiles) {
@@ -133,12 +134,12 @@ public class HelperMethod {
                                 break;
                             }
                         }
+
                     }
 
                 }
-                tiles.removeAll(connectedTiles);
                 if (route.isEmpty()) {
-                    route.add(tiles.stream().filter(HelperMethod::isExitConnected).findFirst().orElseThrow());
+                    route.add(tiles.stream().filter(i -> !isB2Tile(i)).findFirst().orElseThrow());
                 }
                 for (String tile : tiles) {
                     for (String tileCollected : route) {
@@ -166,16 +167,55 @@ public class HelperMethod {
                 outerLoop:
                 for (String t : tiles) {
                     for (String placed : route) {
-                        if (areConnectedNeighbours(t, placed) && !isB2Tile(t)) {
+                        if (areConnectedNeighbours(t, placed)  &&
+                                (!isB2Tile(t) || !b2Tiles.contains(t))) {
                             flag = true;
                             break outerLoop;
+                            }
+
+                    }
+                }
+
+                outLoop:
+                for (String b2Tile : b2Tiles) {
+                    if (flag) {break;}
+                    ArrayList<String> neighbourPos =  getNeighbours(b2Tile,tilesMap);
+                    if (neighbourPos.isEmpty()) { continue ;}
+                    for (String position : neighbourPos) {
+                        if (isB2Tile(tilesMap.get(position))) {continue;}
+                        char searchRow, searchCol;
+                        if (position.charAt(0) == b2Tile.charAt(2)) {
+                            searchRow = position.charAt(0);
+                            searchCol = (char) (position.charAt(1) < b2Tile.charAt(3) ?
+                                    b2Tile.charAt(3)+1 : b2Tile.charAt(3)-1);
+                        } else {
+                            searchRow = (char) (position.charAt(0) < b2Tile.charAt(2) ?
+                                    b2Tile.charAt(2)+1 : b2Tile.charAt(2)-1);
+                            searchCol = position.charAt(1);
+                        }
+                        for (String routeTile : route) {
+                            if (routeTile.charAt(2) == searchRow &&
+                                    routeTile.charAt(3) == searchCol) {
+                                flag = true;
+                                String removeTile = tilesMap.remove(position);
+                                tiles.remove(removeTile);
+                                route.add(removeTile);
+                                break outLoop;
+                            }
                         }
                     }
+
                 }
 
                 // Count exits and start a new route
                 if (!flag) {
                     route.addAll(b2Tiles);
+                    for (String b2Tile :b2Tiles) {
+                        if (isExitConnected(b2Tile)
+                        && isB2TileNeedRemoved(b2Tile, route)) {
+                            route.remove(b2Tile);
+                        }
+                    }
                     b2Tiles.clear();
                     for (String t : route) {
                         if (isExitConnected(t))
@@ -196,8 +236,61 @@ public class HelperMethod {
 
     }
 
+
+
     /**
-     * This method is to get the tiles neighbours if they are existed
+     * This is a helper method for countExitsScore, where B2 tile is connected to an exit
+     * @author Frederick Li
+     * @param b2Tile B2 tile
+     * @param route a HashSet of tile placements
+     * @return boolean
+     */
+    static boolean isB2TileNeedRemoved(String b2Tile, HashSet<String> route) {
+        HashMap<String, String> tilesMap = new HashMap<>(); // for quick locating pieces
+        for (String routeTile : route) {
+            tilesMap.put(routeTile.substring(2, 4),routeTile);
+        }
+
+        var row = b2Tile.charAt(2);
+        var col = b2Tile.charAt(3);
+        if (row == 'A' || row == 'G') {
+            char findRow = (char) (row == 'A' ? row+1 : row-1);
+            while(true) {
+                if ((row == 'A' && findRow == 'G') || (row == 'G' && findRow == 'A')) {
+                    return false;
+                }
+                String findPos = String.valueOf(findRow) + String.valueOf(col);
+                String routeTile = tilesMap.get(findPos);
+                if (routeTile == null) {
+                    return true;
+                } else if (!isB2Tile(routeTile)) {
+                    return false;
+                } else {
+                    findRow = (char) (row == 'A' ? ++findRow : --findRow);
+                }
+            }
+        } else {
+            char findCol = (char) (col == '0' ? col+1 : col-1);
+            while(true) {
+                if ((col == '0' && findCol == '6') || (col == '6' && findCol == '0')) {
+                    return false;
+                }
+                String findPos = String.valueOf(row) + String.valueOf(findCol);
+                String routeTile = tilesMap.get(findPos);
+                if (routeTile == null) {
+                    return true;
+                } else if (!isB2Tile(routeTile)) {
+                    return false;
+                } else {
+                    findCol = (char) (col == '0' ? ++findCol: --findCol);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * This method is to get the tiles neighbours from the map if they are existed
      * @author Frederick Li
      * @param tile the target tile
      * @param tilesMap a HashMap whose key is the position, whose value is the tile placement string
@@ -275,11 +368,15 @@ public class HelperMethod {
      * Count all errors: Errors are the edges of routes
      *      that are not connected to an edge of the board.
      * @author Frederick Li
-     * @param tilePlacements an array of string which contains tile placements
+     * @param boardString a string of game state
      * @return the number of errors also regarded as scores.
      */
-     static int countErrorsScore(String[] tilePlacements) {
-        String[] tiles = Arrays.copyOf(tilePlacements, tilePlacements.length);
+     public static int countErrorsScore(String boardString) {
+         String[] tilePlacements = new String[ boardString.length()/5];
+         for (int i = 0; i+5 <= boardString.length(); i += 5) {
+             tilePlacements[i/5] = (boardString.substring(i, i+5));
+         }
+        String[] tiles = new String[tilePlacements.length];
         for (int i = 0; i < tiles.length; i++) {
             tiles[i] = getShape(tilePlacements[i].toCharArray(), tilePlacements[i].charAt(4))
                     + tilePlacements[i].substring(2, 4);
@@ -344,7 +441,7 @@ public class HelperMethod {
         for (char c : sb.toString().toCharArray()) {
             if (c != '#') {errors++;}
         }
-        return errors;
+        return -errors;
     }
 
     /**
@@ -479,4 +576,136 @@ public class HelperMethod {
         board.removeAll(usedGrids);
         return board;
     }
+
+    /**
+     * This method is to check whether a tile is a railway (all edges are railway)
+     *      B2 is excluded.
+     * @author Frederick Li
+     * @param tilePlacement a 5 characters string represents a tile
+     */
+    static boolean isRailway(String tilePlacement) {
+        String tileKind = tilePlacement.substring(0, 2);
+        return tileKind.equals("S3") || tileKind.equals("A0") ||
+                tileKind.equals("A1") || tileKind.equals("A2");
+    }
+
+    /**
+     * This method is to check whether a tile is a highway (all edges are highway)
+     *      B2 is excluded.
+     * @author Frederick Li
+     * @param tilePlacement a 5 characters string represents a tile
+     */
+    static boolean isHighway(String tilePlacement){
+        String tileKind = tilePlacement.substring(0, 2);
+        return tileKind.equals("S2") || tileKind.equals("A3") ||
+                tileKind.equals("A4") || tileKind.equals("A5");
+    }
+
+    /**
+     * This method is to check whether two connected tiles have the same edge c ( r or h)
+     * @author Frederick Li
+     * @param tileA tilePlacement
+     * @param tileB tilePlacement
+     * @param c either 'r' or 'h'
+     */
+    static boolean checkEdge(String tileA, String tileB, char c) {
+        String tileAShape = getShape(tileA.toCharArray(), tileA.charAt(4));
+        String tileBShape = getShape(tileB.toCharArray(), tileB.charAt(4));
+
+        if (tileA.charAt(2) == tileB.charAt(2)) {       // the same row
+            if (tileA.charAt(3) < tileB.charAt(3)) {
+                return tileAShape.charAt(3) == c ;
+            } else {
+                return tileAShape.charAt(1) == c;
+            }
+        } else {        // the same column
+            if (tileA.charAt(2) < tileB.charAt(2)) {
+                return tileAShape.charAt(2) == c;
+            } else {
+                return tileAShape.charAt(0) == c;
+            }
+        }
+    }
+
+
+    /**
+     * This class represents the connection of a route
+     */
+    static class RouteGraph {
+        private HashMap<String, LinkedList<String>> adj; // adjacent tiles collection
+        private int vertices;
+
+        public RouteGraph(int vertices) {
+            this.vertices = vertices;
+            adj = new HashMap<>();
+        }
+
+        public void addTile(String key, String tile) {
+            adj.get(key).add(tile);
+        }
+
+        /**
+         * This is a recursion util function for findLongestRoad
+         * @author Frederick Li
+         * @param s a string represents the starting tile
+         * @param visited a HashMap which record the tiles that have been visited
+         * @param prev previous length
+         * @param max an array with 1 element of the length of the longest road
+         */
+        public void findLongestRoadRec(String s, HashMap<String, Boolean> visited,
+                                       int prev, int[] max) {
+            visited.put(s, true);
+
+            int curr = prev;
+
+            for (String adjTile : adj.get(s)) {
+                if (!visited.get(adjTile)) {
+                    curr = prev + 1;
+                    findLongestRoadRec(adjTile, visited, curr, max);
+                }
+                max[0] = Math.max(max[0], curr);
+            }
+        }
+    }
+
+    /**
+     * This method is to find the longest road from a route (collection with tiles)
+     * @author Frederick Li
+     * @param tilePlacements a collection of the connecting tiles of the same type
+     * @param k the kind (railway or highway) : either 'r' or 'h'
+     * @return the length of the longest road
+     */
+    public static int findLongestRoad(HashSet<String> tilePlacements, char k) {
+        RouteGraph tileGraph = new RouteGraph(tilePlacements.size());
+        for (String tile:
+             tilePlacements) {
+            LinkedList<String> neighbours = new LinkedList<>();
+            tileGraph.adj.put(tile, neighbours);
+
+        }
+        for (String keyTile : tilePlacements) {
+            for (String checkingTile: tilePlacements) {
+                if (areConnectedNeighbours(keyTile,checkingTile) &&
+                checkEdge(keyTile, checkingTile, k)) {
+                    LinkedList<String> neighbours = tileGraph.adj.get(keyTile);
+                    neighbours.add(checkingTile);
+                }
+            }
+        }
+
+        ArrayList<Integer> maxCollections = new ArrayList<>();
+        for (String startTile : tilePlacements) {
+            HashMap<String, Boolean> visited = new HashMap<>();
+            for (String key : tilePlacements) {
+                visited.put(key, false);
+            }
+            int[] max = {Integer.MIN_VALUE};
+            tileGraph.findLongestRoadRec(startTile,visited ,1 ,max );
+            maxCollections.add(max[0]);
+
+        }
+
+        return maxCollections.stream().max(Comparator.comparingInt(i->i)).orElseThrow();
+    }
+
 }

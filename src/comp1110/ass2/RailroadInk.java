@@ -1,6 +1,5 @@
 package comp1110.ass2;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 import static comp1110.ass2.HelperMethod.*;
@@ -172,10 +171,10 @@ public class RailroadInk {
         StringBuilder sb = new StringBuilder();
         int count = 3;
         while (count > 0) {
-            sb.append('A').append(String.valueOf((int) (Math.random()*5)));
+            sb.append('A').append(String.valueOf((int) (Math.random()*6)));
             count--;
         }
-        sb.append('B').append(String.valueOf((int) (Math.random()*2)));
+        sb.append('B').append(String.valueOf((int) (Math.random()*3)));
         return sb.toString();
     }
 
@@ -202,15 +201,15 @@ public class RailroadInk {
         int exitScore = 0;
         int centerTilesScore = 0;
         int deadEndsScore = 0;
-        exitScore = countExitsScore(tilePlacements);
-        deadEndsScore = countErrorsScore(tilePlacements);
+        exitScore = countExitsScore(boardString);
+        deadEndsScore = countErrorsScore(boardString);
         for (String placement : tilePlacements) {
             if (placement.charAt(2) >= 'C' && placement.charAt(2) <= 'E'
                 && placement.charAt(3) >= '2' && placement.charAt(3) <= '4') {
                 centerTilesScore++;
             }
         }
-        return exitScore+centerTilesScore-deadEndsScore;
+        return exitScore+centerTilesScore+deadEndsScore;
 
     }
 
@@ -304,12 +303,107 @@ public class RailroadInk {
     public static int getAdvancedScore(String boardString) {
         // FIXME Task 12: compute the total score including bonus points
         int basicScore = getBasicScore(boardString);
-        return -1;
+        String[] tilePlacements = new String[boardString.length()/5];
+        for (int i = 0; i+5 <= boardString.length(); i += 5) {
+            tilePlacements[i/5] = boardString.substring(i, i+5);
+        }
+
+        HashSet<HashSet<String>> railroads = new HashSet<>();
+        HashSet<HashSet<String>> highRoads = new HashSet<>();
+
+
+        for (String tile : tilePlacements) {
+            HashSet<String> route = new HashSet<>();
+            if (isHighway(tile)) {
+                continue;
+            } else {
+                route.add(tile);
+            }
+            boolean flag = true;
+
+            while (flag) {
+                for (String otherTile : tilePlacements) {
+
+                    if (!isHighway(otherTile)) {
+                        for (String routeTile : route) {
+                            if (areConnectedNeighbours(otherTile, routeTile)
+                                &&  checkEdge(otherTile, routeTile, 'r')) {
+                                route.add(otherTile);
+                                break;
+                            }
+                        }
+                    }
+                }
+                flag = false;
+                outLoop:
+                for (String otherTile : tilePlacements) {
+                    for (String routeTile : route) {
+                        if (!route.contains(otherTile) && !isHighway(otherTile)
+                                && areConnectedNeighbours(otherTile, routeTile) &&
+                        checkEdge(otherTile, routeTile, 'r')) {
+                            flag = true;
+                            break outLoop;
+                        }
+                    }
+                }
+
+            }
+            railroads.add(route);
+        }
+
+
+
+        for (String tile : tilePlacements) {
+            HashSet<String> route = new HashSet<>();
+            if (isRailway(tile)) {
+                continue;
+            } else {
+                route.add(tile);
+            }
+            boolean flag = true;
+
+            while (flag) {
+                for (String otherTile : tilePlacements) {
+
+                    if (!isRailway(otherTile)) {
+                        for (String routeTile : route) {
+                            if (areConnectedNeighbours(otherTile, routeTile) &&
+                            checkEdge(otherTile, routeTile, 'h')) {
+                                route.add(otherTile);
+                                break;
+                            }
+                        }
+                    }
+                }
+                flag = false;
+                outLoop:
+                for (String otherTile : tilePlacements) {
+                    for (String routeTile : route) {
+                        if (!route.contains(otherTile) && !isRailway(otherTile)
+                                && areConnectedNeighbours(otherTile, routeTile)
+                        &&  checkEdge(otherTile, routeTile, 'h')) {
+                            flag = true;
+                            break outLoop;
+                        }
+                    }
+                }
+
+            }
+            highRoads.add(route);
+        }
+
+        int longestHighLength = 0;
+        for (HashSet<String> route : highRoads) {
+            longestHighLength = Math.max(longestHighLength, findLongestRoad(route, 'h'));
+
+        }
+        int longestRailLength = 0;
+        for (HashSet<String> route : railroads ) {
+            longestRailLength = Math.max(longestRailLength, findLongestRoad(route,'r'));
+        }
+
+        return longestHighLength + longestRailLength + basicScore;
     }
 
-    public static void main(String[] args) {
-        String boarString = "S4B66S1D61";
-        System.out.println(areNeighboursValid(boarString,"A1C60"));
-    }
 }
 
