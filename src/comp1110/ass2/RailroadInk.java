@@ -283,7 +283,6 @@ public class RailroadInk {
             count++;
 
         }
-
         return max(validMoves);
 
     }
@@ -308,101 +307,10 @@ public class RailroadInk {
             tilePlacements[i/5] = boardString.substring(i, i+5);
         }
 
-        HashSet<HashSet<String>> railroads = new HashSet<>();
-        HashSet<HashSet<String>> highRoads = new HashSet<>();
+        int longestRailway = findLongestRoad(tilePlacements,'r' );
+        int longestHighway = findLongestRoad(tilePlacements, 'h');
 
-
-        for (String tile : tilePlacements) {
-            HashSet<String> route = new HashSet<>();
-            if (isHighway(tile)) {
-                continue;
-            } else {
-                route.add(tile);
-            }
-            boolean flag = true;
-
-            while (flag) {
-                for (String otherTile : tilePlacements) {
-
-                    if (!isHighway(otherTile)) {
-                        for (String routeTile : route) {
-                            if (areConnectedNeighbours(otherTile, routeTile)
-                                &&  checkEdge(otherTile, routeTile, 'r')) {
-                                route.add(otherTile);
-                                break;
-                            }
-                        }
-                    }
-                }
-                flag = false;
-                outLoop:
-                for (String otherTile : tilePlacements) {
-                    for (String routeTile : route) {
-                        if (!route.contains(otherTile) && !isHighway(otherTile)
-                                && areConnectedNeighbours(otherTile, routeTile) &&
-                        checkEdge(otherTile, routeTile, 'r')) {
-                            flag = true;
-                            break outLoop;
-                        }
-                    }
-                }
-
-            }
-            railroads.add(route);
-        }
-
-
-
-        for (String tile : tilePlacements) {
-            HashSet<String> route = new HashSet<>();
-            if (isRailway(tile)) {
-                continue;
-            } else {
-                route.add(tile);
-            }
-            boolean flag = true;
-
-            while (flag) {
-                for (String otherTile : tilePlacements) {
-
-                    if (!isRailway(otherTile)) {
-                        for (String routeTile : route) {
-                            if (areConnectedNeighbours(otherTile, routeTile) &&
-                            checkEdge(otherTile, routeTile, 'h')) {
-                                route.add(otherTile);
-                                break;
-                            }
-                        }
-                    }
-                }
-                flag = false;
-                outLoop:
-                for (String otherTile : tilePlacements) {
-                    for (String routeTile : route) {
-                        if (!route.contains(otherTile) && !isRailway(otherTile)
-                                && areConnectedNeighbours(otherTile, routeTile)
-                        &&  checkEdge(otherTile, routeTile, 'h')) {
-                            flag = true;
-                            break outLoop;
-                        }
-                    }
-                }
-
-            }
-            highRoads.add(route);
-        }
-
-        int longestHighLength = 0;
-        for (HashSet<String> route : highRoads) {
-            longestHighLength = Math.max(longestHighLength, findLongestRoad(route, 'h'));
-
-        }
-        int longestRailLength = 0;
-        for (HashSet<String> route : railroads ) {
-            longestRailLength = Math.max(longestRailLength, findLongestRoad(route,'r'));
-        }
-
-        return longestHighLength + longestRailLength + basicScore;
+        return longestHighway + longestRailway + basicScore;
     }
 
 }

@@ -176,6 +176,7 @@ public class HelperMethod {
                     }
                 }
 
+                // additional check of B2 tile
                 outLoop:
                 for (String b2Tile : b2Tiles) {
                     if (flag) {break;}
@@ -548,10 +549,9 @@ public class HelperMethod {
             }
             placed.put(placement.substring(2, 4), placement);
         }
-
         return true;
-
     }
+
 
     /**
      * Get all unplaced grids.
@@ -589,6 +589,7 @@ public class HelperMethod {
                 tileKind.equals("A1") || tileKind.equals("A2");
     }
 
+
     /**
      * This method is to check whether a tile is a highway (all edges are highway)
      *      B2 is excluded.
@@ -600,6 +601,7 @@ public class HelperMethod {
         return tileKind.equals("S2") || tileKind.equals("A3") ||
                 tileKind.equals("A4") || tileKind.equals("A5");
     }
+
 
     /**
      * This method is to check whether two connected tiles have the same edge c ( r or h)
@@ -671,11 +673,13 @@ public class HelperMethod {
     /**
      * This method is to find the longest road from a route (collection with tiles)
      * @author Frederick Li
-     * @param tilePlacements a collection of the connecting tiles of the same type
+     * @param tiles an array of tiles
      * @param k the kind (railway or highway) : either 'r' or 'h'
      * @return the length of the longest road
      */
-    public static int findLongestRoad(HashSet<String> tilePlacements, char k) {
+    public static int findLongestRoad(String[] tiles, char k) {
+        HashSet<String> tilePlacements = new HashSet<>();
+        Collections.addAll(tilePlacements,tiles);
         RouteGraph tileGraph = new RouteGraph(tilePlacements.size());
         for (String tile:
              tilePlacements) {

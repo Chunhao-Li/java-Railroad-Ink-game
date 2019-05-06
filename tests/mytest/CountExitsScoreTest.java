@@ -1,13 +1,13 @@
-package MyTest;
+package mytest;
 
 import  static comp1110.ass2.HelperMethod.*;
-import static comp1110.ass2.RailroadInk.*;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 import static org.junit.Assert.*;
 
-public class TestCountExitsScoreTest {
+public class CountExitsScoreTest {
     @Rule
     public Timeout globalTimeout = Timeout.millis(2000);
 
