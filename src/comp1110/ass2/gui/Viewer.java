@@ -178,7 +178,7 @@ public class Viewer extends Application {
      * Generate 4 pieces via dice roll and 6 S tiles
      */
     private void generateDicePieces() {
-        if (!dices.isEmpty() && hasValidPlacement()) {
+        if (!dices.isEmpty() && hasValidPlacement(false)) {
             Alert alert = new Alert(Alert.AlertType.WARNING, "You must place regular tiles as many as you can!");
             alert.showAndWait();
             return;
