@@ -1,5 +1,6 @@
 package comp1110.ass2.gui;
 
+import comp1110.ass2.HelperMethod;
 import comp1110.ass2.RailroadInk;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -88,15 +89,15 @@ public class Viewer extends Application {
                 railExit.setFitHeight(Tile_Size);
                 if (row == 0) {
                     if (col == 3) {
-                        railExit.setLayoutY(Y_Side - Tile_Size / 2);
+                        railExit.setLayoutY(Y_Side - Tile_Size/2);
                         railExit.setLayoutX(X_Side + col * Tile_Size);
                         root.getChildren().add(railExit);
-                    } else if (col == 1) {
-                        highExit.setLayoutY(Y_Side - Tile_Size / 2);
+                    }else if (col == 1){
+                        highExit.setLayoutY(Y_Side - Tile_Size/2);
                         highExit.setLayoutX(X_Side + col * Tile_Size);
                         root.getChildren().add(highExit);
-                    } else { // col == 5
-                        highExit.setLayoutY(Y_Side - Tile_Size / 2);
+                    }else { // col == 5
+                        highExit.setLayoutY(Y_Side - Tile_Size/2);
                         highExit.setLayoutX(X_Side + col * Tile_Size);
                         root.getChildren().add(highExit);
                     }
@@ -105,15 +106,15 @@ public class Viewer extends Application {
                     highExit.setRotate(180);
                     railExit.setRotate(180);
                     if (col == 3) {
-                        railExit.setLayoutY(Y_Side - Tile_Size / 2 + 7 * Tile_Size);
+                        railExit.setLayoutY(Y_Side - Tile_Size/2 + 7 * Tile_Size);
                         railExit.setLayoutX(X_Side + col * Tile_Size);
                         root.getChildren().add(railExit);
-                    } else if (col == 1) {
-                        highExit.setLayoutY(Y_Side - Tile_Size / 2 + 7 * Tile_Size);
+                    }else if (col == 1){
+                        highExit.setLayoutY(Y_Side - Tile_Size/2 + 7 * Tile_Size);
                         highExit.setLayoutX(X_Side + col * Tile_Size);
                         root.getChildren().add(highExit);
-                    } else { // col == 5
-                        highExit.setLayoutY(Y_Side - Tile_Size / 2 + 7 * Tile_Size);
+                    }else { // col == 5
+                        highExit.setLayoutY(Y_Side - Tile_Size/2 + 7 * Tile_Size);
                         highExit.setLayoutX(X_Side + col * Tile_Size);
                         root.getChildren().add(highExit);
                     }
@@ -136,15 +137,15 @@ public class Viewer extends Application {
                     railExit.setRotate(270);
                     if (row == 3) {
                         highExit.setLayoutY(Y_Side + row * Tile_Size);
-                        highExit.setLayoutX(X_Side - Tile_Size / 2);
+                        highExit.setLayoutX(X_Side- Tile_Size/2);
                         root.getChildren().add(highExit);
-                    } else if (row == 1) {
+                    }else if (row == 1){
                         railExit.setLayoutY(Y_Side + row * Tile_Size);
-                        railExit.setLayoutX(X_Side - Tile_Size / 2);
+                        railExit.setLayoutX(X_Side- Tile_Size/2);
                         root.getChildren().add(railExit);
-                    } else {
+                    }else {
                         railExit.setLayoutY(Y_Side + row * Tile_Size);
-                        railExit.setLayoutX(X_Side - Tile_Size / 2);
+                        railExit.setLayoutX(X_Side- Tile_Size/2);
                         root.getChildren().add(railExit);
                     }
                 }
@@ -153,15 +154,15 @@ public class Viewer extends Application {
                     railExit.setRotate(90);
                     if (row == 3) {
                         highExit.setLayoutY(Y_Side + row * Tile_Size);
-                        highExit.setLayoutX(X_Side - Tile_Size / 2 + 7 * Tile_Size);
+                        highExit.setLayoutX(X_Side- Tile_Size/2 + 7 * Tile_Size);
                         root.getChildren().add(highExit);
-                    } else if (row == 1) {
+                    }else if (row == 1){
                         railExit.setLayoutY(Y_Side + row * Tile_Size);
-                        railExit.setLayoutX(X_Side - Tile_Size / 2 + 7 * Tile_Size);
+                        railExit.setLayoutX(X_Side- Tile_Size/2 + 7 * Tile_Size);
                         root.getChildren().add(railExit);
-                    } else {
+                    }else {
                         railExit.setLayoutY(Y_Side + row * Tile_Size);
-                        railExit.setLayoutX(X_Side - Tile_Size / 2 + 7 * Tile_Size);
+                        railExit.setLayoutX(X_Side- Tile_Size/2 + 7 * Tile_Size);
                         root.getChildren().add(railExit);
                     }
                 }
@@ -178,8 +179,8 @@ public class Viewer extends Application {
         generatingPieces.getChildren().clear();
         dices = RailroadInk.generateDiceRoll();
         String[] eachDice = new String[4];
-        for (int i = 0; i + 2 <= dices.length(); i += 2) {
-            eachDice[i / 2] = dices.substring(i, i + 2);
+        for (int i = 0; i+2 <= dices.length(); i+=2) {
+            eachDice[i/2] = dices.substring(i, i+2);
         }
         for (int i = 0; i < eachDice.length; i++) {
             String dice = eachDice[i];
@@ -187,21 +188,21 @@ public class Viewer extends Application {
             DraggablePiece draggablePiece = new DraggablePiece(tileImage, dice);
             draggablePiece.setFitHeight(Tile_Size);
             draggablePiece.setFitWidth(Tile_Size);
-            draggablePiece.homeX = X_Side / 3f;
-            draggablePiece.homeY = Y_Side + 20 + 2 * i * Tile_Size;
+            draggablePiece.homeX = X_Side/3f;
+            draggablePiece.homeY = Y_Side + 20 + 2*i * Tile_Size;
             draggablePiece.setLayoutX(draggablePiece.homeX);
             draggablePiece.setLayoutY(draggablePiece.homeY);
             generatingPieces.getChildren().add(draggablePiece);
         }
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 6; i++ ) {
             Image tileImage = new Image(Viewer.class.getResource(
                     URI_BASE + "S" + i + ".png").toString());
-            DraggablePiece draggablePiece = new DraggablePiece(tileImage, "S" + i);
+            DraggablePiece draggablePiece = new DraggablePiece(tileImage, "S"+i);
             draggablePiece.setFitWidth(Tile_Size);
             draggablePiece.setFitHeight(Tile_Size);
-            draggablePiece.homeX = X_Side + 7 * Tile_Size + X_Side / 3f;
+            draggablePiece.homeX = X_Side + 7*Tile_Size + X_Side/3f;
             draggablePiece.setLayoutX(draggablePiece.homeX);
-            draggablePiece.homeY = 30 + 1.5 * i * Tile_Size;
+            draggablePiece.homeY = 30 + 1.5*i*Tile_Size;
             draggablePiece.setLayoutY(draggablePiece.homeY);
             generatingPieces.getChildren().add(draggablePiece);
         }
@@ -234,16 +235,16 @@ public class Viewer extends Application {
             double currX = this.getLayoutX();
             double currY = this.getLayoutY();
 
-            double newX = Math.round((currX - X_Side) / Tile_Size) * Tile_Size + X_Side;
-            double newY = Math.round((currY - Y_Side) / Tile_Size) * Tile_Size + Y_Side;
+            double newX = Math.round((currX-X_Side) / Tile_Size) * Tile_Size + X_Side;
+            double newY = Math.round((currY-Y_Side) / Tile_Size) * Tile_Size + Y_Side;
             this.setLayoutX(newX);
             this.setLayoutY(newY);
             this.setOpacity(1.0);
         }
 
         private void rotate() {
-            rotation = (rotation + 1) % 4;
-            this.setRotate(rotation * 90);
+            rotation = (rotation+1) % 4;
+            this.setRotate(rotation*90);
         }
 
         private void flipped() {
@@ -251,12 +252,10 @@ public class Viewer extends Application {
             isFlipped = true;
 
         }
-
         private void flippedBack() {
             this.setScaleX(1);
             isFlipped = false;
         }
-
         void drag(double moveX, double moveY) {
             setLayoutX(getLayoutX() + moveX);
             setLayoutY(getLayoutY() + moveY);
@@ -265,14 +264,14 @@ public class Viewer extends Application {
         }
 
         boolean isOnBoard() {
-            return this.getLayoutX() > X_Side - Tile_Size && this.getLayoutX() < VIEWER_WIDTH - X_Side
-                    && this.getLayoutY() > Y_Side && this.getLayoutY() < VIEWER_HEIGHT - Y_Side;
+            return this.getLayoutX() > X_Side-Tile_Size && this.getLayoutX() < VIEWER_WIDTH-X_Side
+                    && this.getLayoutY() > Y_Side && this.getLayoutY() < VIEWER_HEIGHT-Y_Side;
         }
 
         void setPosition() {
             Image tileImage = new Image(Viewer.class.getResource(URI_BASE + name + ".png").toString());
             ImageView placedPiece = new ImageView(tileImage);
-            placedPiece.setRotate(rotation * 90);
+            placedPiece.setRotate(rotation*90);
             if (isFlipped) {
                 placedPiece.setScaleX(-1);
             }
@@ -286,7 +285,7 @@ public class Viewer extends Application {
                 sTileTotal++;
             } else {
                 int i = dices.indexOf(name);
-                dices = i != -1 ? dices.substring(0, i) + dices.substring(i + 2, dices.length()) : dices;
+                dices = i != -1 ? dices.substring(0, i)+ dices.substring(i+2, dices.length()) : dices;
             }
 
         }
@@ -294,18 +293,18 @@ public class Viewer extends Application {
         boolean isValid() {
             double currX = this.getLayoutX();
             double currY = this.getLayoutY();
-            char col = (char) (Math.round((currX - X_Side) / Tile_Size) + '0');
-            char row = (char) (Math.round((currY - Y_Side) / Tile_Size) + 'A');
-            String orientation = isFlipped ? String.valueOf(rotation + 4) : String.valueOf(rotation);
+            char col = (char) ( Math.round((currX-X_Side) / Tile_Size) + '0') ;
+            char row = (char) (Math.round((currY-Y_Side) / Tile_Size) + 'A') ;
+            String orientation = isFlipped ? String.valueOf(rotation+4) : String.valueOf(rotation);
             String piecePlacement = name + String.valueOf(row) + String.valueOf(col) + orientation;
             if (name.charAt(0) == 'S') {
                 if (sTileTotal >= 3 || sTilePerTurn == 1) {
                     return false;
                 }
             }
-            if (RailroadInk.isBoardStringWellFormed(boardString + piecePlacement)
-                    && RailroadInk.isValidPlacementSequence(boardString + piecePlacement)
-                    && RailroadInk.areNeighboursValid(boardString, piecePlacement)) {
+            if (RailroadInk.isBoardStringWellFormed(boardString+piecePlacement)
+            && RailroadInk.isValidPlacementSequence(boardString+piecePlacement)
+            && RailroadInk.areNeighboursValid(boardString, piecePlacement)) {
                 boardString += piecePlacement;
                 return true;
             } else {
@@ -319,22 +318,22 @@ public class Viewer extends Application {
     private boolean hasValidPlacement() {
         List<String> unUsedGrids = RailroadInk.getUnusedGrids(boardString);
         Set<String> tiles = new HashSet<>();
-        for (int i = 0; i + 2 <= dices.length(); i += 2) {
-            tiles.add(dices.substring(i, i + 2));
+        for (int i = 0; i+2 <= dices.length(); i+=2) {
+            tiles.add(dices.substring(i, i+2));
         }
 
         if (sTilePerTurn == 0 && sTileTotal < 3) {
-            for (int i = 0; i < 6; i++) {
+            for (int i = 0; i < 6; i++ ) {
                 tiles.add("S" + i);
             }
         }
-        for (String tile : tiles) {
+        for (String tile: tiles) {
             List<Character> orientations = RailroadInk.getOrientations(tile);
             for (String grid : unUsedGrids) {
                 for (char o : orientations) {
-                    String placement = tile + grid + String.valueOf(o);
-                    if (RailroadInk.isValidPlacementSequence(boardString + placement) &&
-                            RailroadInk.areNeighboursValid(boardString, placement)) {
+                    String placement = tile+grid+String.valueOf(o);
+                    if (RailroadInk.isValidPlacementSequence(boardString+placement) &&
+                        RailroadInk.areNeighboursValid(boardString, placement)) {
                         return true;
                     }
                 }
@@ -398,7 +397,7 @@ public class Viewer extends Application {
                     alert.showAndWait();
                     if (alert.getResult() == ButtonType.OK) {
                         int score = RailroadInk.getBasicScore(boardString);
-                        Text t = new Text(VIEWER_WIDTH / 2, (double) Y_Side / 2, "Basic Score: " + score);
+                        Text t = new Text(VIEWER_WIDTH/2, (double) Y_Side/2, "Basic Score: "+score);
                         t.setFont(Font.font("Verdana", 20));
                         root.getChildren().add(t);
                     }
@@ -407,6 +406,7 @@ public class Viewer extends Application {
 
         }
     }
+
 
 
     /**
@@ -428,7 +428,7 @@ public class Viewer extends Application {
         });
 
         Button clear = new Button("Clear");
-        clear.setLayoutX(diceRoll.getLayoutX() + 100);
+        clear.setLayoutX(diceRoll.getLayoutX()+100);
         clear.setLayoutY(diceRoll.getLayoutY());
         clear.setOnAction(e -> {
             generatingPieces.getChildren().clear();
@@ -452,29 +452,17 @@ public class Viewer extends Application {
         controls.getChildren().addAll(hb, diceRoll, clear);
     }
 
-    private void setKeyListener(Scene s) {
-        /* create a handlers to monitor the key event */
-        s.setOnKeyPressed(event -> {
-            Object obj = event.getCode();
-            if (obj == KeyCode.BACK_SPACE) {
-                // exit game when backspace is pressed
-                Platform.exit();
-            } else if (obj == KeyCode.P) {
-                //pause here
-                event.consume();
-            }
-        });
-    }
+
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("StepsGame Viewer");
         Scene scene = new Scene(root, VIEWER_WIDTH, VIEWER_HEIGHT);
 
-        Rectangle rectangle = new Rectangle(3 * Tile_Size, 3 * Tile_Size, Color.LIGHTGRAY);
-        rectangle.setX(X_Side + 2 * Tile_Size);
-        rectangle.setY(Y_Side + 2 * Tile_Size);
-        setKeyListener(scene);
+        Rectangle rectangle = new Rectangle(3*Tile_Size, 3*Tile_Size, Color.LIGHTGRAY);
+        rectangle.setX(X_Side+2*Tile_Size);
+        rectangle.setY(Y_Side +2*Tile_Size);
+
 
         root.getChildren().addAll(rectangle, generatingPieces, placedPieces, controls, Pieces);
 
@@ -483,7 +471,7 @@ public class Viewer extends Application {
 
         Line[] row = new Line[8];
         Line[] column = new Line[8];
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 8; i ++){
             row[i] = new Line();
             column[i] = new Line();
             row[i].setStartX(X_Side);
@@ -502,6 +490,7 @@ public class Viewer extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
+
 
 
     public static void main(String[] args) {
