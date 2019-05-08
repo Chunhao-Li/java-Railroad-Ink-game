@@ -176,12 +176,14 @@ public class RailroadInk {
         int count = 3;
         Random generator = new Random();
         while (count > 0) {
-            sb.append('A').append(String.valueOf(generator.nextInt(6)));
+            sb.append('A').append(String.valueOf((int) (generator.nextDouble()*6)));
             count--;
         }
-        sb.append('B').append(String.valueOf(generator.nextInt(3)));
+        sb.append('B').append(String.valueOf((int) (generator.nextDouble()*3)));
         return sb.toString();
     }
+
+
 
 
     /**
