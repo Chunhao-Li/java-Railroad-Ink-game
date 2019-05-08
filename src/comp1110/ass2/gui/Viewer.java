@@ -3,7 +3,6 @@ package comp1110.ass2.gui;
 import static comp1110.ass2.HelperMethod.*;
 import static comp1110.ass2.RailroadInk.*;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -40,7 +39,7 @@ public class Viewer extends Application {
     private static final int X_Side = 232;   //(VIEWER_WIDTH - Tile_Size * 7)/2
     private static final int Y_Side = 104;   //(VIEWER_HEIGHT - Tile_Size * 7)/2
 
-    private final Group cover = new Group();
+    private final Group mainGroup = new Group();
     private final Group boardSingleMode = new Group();
     private final Group boardAiModeA = new Group();
     private final Group boardAiModeP = new Group();
@@ -54,7 +53,7 @@ public class Viewer extends Application {
     private final Group rootAIMode = new Group();
     private final Group aiBoardGroup = new Group();
     private Scene aiBoardScene = new Scene(aiBoardGroup, VIEWER_WIDTH, VIEWER_HEIGHT);
-    private Scene coverScene = new Scene(cover, VIEWER_WIDTH, VIEWER_HEIGHT);
+    private Scene mainScene = new Scene(mainGroup, VIEWER_WIDTH, VIEWER_HEIGHT);
     private Scene singleModeScene = new Scene(root, VIEWER_WIDTH, VIEWER_HEIGHT);
     private Scene aiModePlayerScene = new Scene(rootAIMode, VIEWER_WIDTH, VIEWER_HEIGHT);
     private TextField textField;
@@ -375,10 +374,10 @@ public class Viewer extends Application {
 
     /**
      * This method is used to control DraggablePiece :
-     *  - Scroll on the tile: rotate it 90 degrees clockwise
-     *  - Double click: flip the tile (if not flipped)
-     *  - Triple click: flip back (if flipped)
-     *  - Drag and release the tile on the board to place it
+     *      - Scroll on the tile: rotates 90 degrees clockwise
+     *      - Double click: flip the tile (if not flipped)
+     *      - Triple click: flip back (if flipped)
+     *      - Drag and release the tile on the board to place it
      */
     private void handlePiece(Group group) {
         for (Node node : generatingPieces.getChildren()) {
@@ -529,11 +528,17 @@ public class Viewer extends Application {
     }
 
 
-
-    /* This method controls the cover scene where user can switch to different modes */
+    /**
+     * This method controls the main scene where user can switch to different modes
+     * modes:
+     *      - single mode ("single game")
+     *      - AI mode ("play with computer")
+     *      - Debug mode ("debug mode")
+     * @param primaryStage
+     */
     private void coverSceneSetting(Stage primaryStage) {
-        primaryStage.setScene(coverScene);
-        coverScene.setOnKeyPressed(e -> {
+        primaryStage.setScene(mainScene);
+        mainScene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.Q) {
                 primaryStage.close();
             }
@@ -561,7 +566,7 @@ public class Viewer extends Application {
             aiMode(primaryStage);
         });
         vBox.getChildren().addAll(single, computerMode, debug);
-        cover.getChildren().addAll(vBox, title);
+        mainGroup.getChildren().addAll(vBox, title);
     }
 
 
@@ -694,14 +699,14 @@ public class Viewer extends Application {
         aiModePlayerScene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ESCAPE) {
                 clearAll();
-                stage.setScene(coverScene);
+                stage.setScene(mainScene);
             }
         });
 
         aiBoardScene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ESCAPE) {
                 clearAll();
-                stage.setScene(coverScene);
+                stage.setScene(mainScene);
             }
         });
 
@@ -721,7 +726,7 @@ public class Viewer extends Application {
         singleModeScene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ESCAPE) {
                 clearAll();
-                stage.setScene(coverScene);
+                stage.setScene(mainScene);
             }
         });
 
