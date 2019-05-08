@@ -150,6 +150,10 @@ public class RailroadInk {
             }
         }
 
+        if (!areNeighboursValid("",boardString)) {
+            return false;
+        }
+
         return Arrays.equals(tiles, placed);
 
 
@@ -170,11 +174,12 @@ public class RailroadInk {
         // FIXME Task 7: generate a dice roll
         StringBuilder sb = new StringBuilder();
         int count = 3;
+        Random generator = new Random();
         while (count > 0) {
-            sb.append('A').append(String.valueOf((int) (Math.random()*6)));
+            sb.append('A').append(String.valueOf(generator.nextInt(6)));
             count--;
         }
-        sb.append('B').append(String.valueOf((int) (Math.random()*3)));
+        sb.append('B').append(String.valueOf(generator.nextInt(3)));
         return sb.toString();
     }
 
