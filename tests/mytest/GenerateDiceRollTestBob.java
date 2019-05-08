@@ -1,5 +1,6 @@
-package comp1110.ass2;
+package mytest;
 
+import comp1110.ass2.RailroadInk;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
