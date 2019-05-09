@@ -3,6 +3,7 @@ package comp1110.ass2.gui;
 import static comp1110.ass2.HelperMethod.*;
 import static comp1110.ass2.RailroadInk.*;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -79,20 +80,16 @@ public class Viewer extends Application {
         // FIXME Task 4: implement the simple placement viewer
         pieces.getChildren().clear();
         for (int i = placement.length() - 5; i >= 0; i -= 5) {
-            try {
             ImageView tileImage = new ImageView(new Image(
                     Viewer.class.getResource(URI_BASE + placement.substring(i, i + 2) + ".png").toString()));
-                tileImage.setFitWidth(Tile_Size);
-                tileImage.setFitHeight(Tile_Size);
-                tileImage.setLayoutY(Y_Side + (placement.charAt(i + 2) - 'A') * Tile_Size);
-                tileImage.setLayoutX(X_Side + (placement.charAt(i + 3) - '0') * Tile_Size);
-                int orientation = placement.charAt(i + 4) - '0';
-                if (orientation > 3) tileImage.setScaleX(-1);
-                tileImage.setRotate(orientation < 4 ? orientation * 90 : (orientation - 4) * 90);
-                pieces.getChildren().add(tileImage);
-            } catch (NullPointerException e) {
-                return;
-            }
+            tileImage.setFitWidth(Tile_Size);
+            tileImage.setFitHeight(Tile_Size);
+            tileImage.setLayoutY(Y_Side + (placement.charAt(i + 2) - 'A') * Tile_Size);
+            tileImage.setLayoutX(X_Side + (placement.charAt(i + 3) - '0') * Tile_Size);
+            int orientation = placement.charAt(i + 4) - '0';
+            if (orientation > 3) tileImage.setScaleX(-1);
+            tileImage.setRotate(orientation < 4 ? orientation * 90 : (orientation - 4) * 90);
+            pieces.getChildren().add(tileImage);
         }
         if (isAIMode) {
             dicesAI = "";
@@ -444,7 +441,7 @@ public class Viewer extends Application {
                     } else if (!hasValidPlacement(false)
                             && hasValidPlacement(true)) {
                         Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                                "You can still place special tile, do you want to end the game?",
+                                "You can still place a special tile, do you want to end the game?",
                                 ButtonType.YES, ButtonType.NO);
                         alert.showAndWait();
                         if (alert.getResult() == ButtonType.YES) {
@@ -502,6 +499,9 @@ public class Viewer extends Application {
         scores.setLayoutX(X_Side + 5*Tile_Size);
         scores.setLayoutY(Y_Side/3f);
         group.getChildren().addAll(scores, resultInfo);
+        generatingPieces.getChildren().clear();
+
+
     }
 
 
@@ -534,9 +534,9 @@ public class Viewer extends Application {
      *      - single mode ("single game")
      *      - AI mode ("play with computer")
      *      - Debug mode ("debug mode")
-     * @param primaryStage
+     * @param primaryStage the main stage of the program
      */
-    private void coverSceneSetting(Stage primaryStage) {
+    private void mainSceneSetting(Stage primaryStage) {
         primaryStage.setScene(mainScene);
         mainScene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.Q) {
@@ -639,6 +639,9 @@ public class Viewer extends Application {
                 if (!dicesAI.isEmpty()) {
                     aiBoardString += generateMove(aiBoardString, dicesAI);
                     makePlacement(aiBoardString, true);
+                    if (diceRollTimes == 7) {
+                        calculateScoreAiMode(rootAIMode);
+                    }
                 }
             }
         });
@@ -749,7 +752,7 @@ public class Viewer extends Application {
         drawBoard(boardAiModeA);
         drawExits(boardAiModeA);
 
-        coverSceneSetting(primaryStage);
+        mainSceneSetting(primaryStage);
         primaryStage.show();
     }
 
