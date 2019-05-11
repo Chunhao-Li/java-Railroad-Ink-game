@@ -89,269 +89,120 @@ public class HelperMethod {
         return false;
     }
 
+    /**
+     * replace the B2 tile with two single tiles
+     * @author Mingchao Sima
+     * @param B2 a String of B2 tile with any location or orientation
+     * @return the String of the replaced version
+     */
+
+    static ArrayList<String> replaceB2  (String B2) {
+        ArrayList<String> replace = new ArrayList<>();
+         if (getShape(B2.toCharArray(), B2.charAt(4)).charAt(0) == 'h'){
+             replace.add("A1"+B2.substring(2,4)+"1");
+             replace.add("A4"+B2.substring(2,4)+"0");
+         }else {
+             replace.add("A1"+B2.substring(2,4)+"0");
+             replace.add("A4"+B2.substring(2,4)+"1");
+         }
+        return replace;
+    }
 
     /**
      * Count the total scores of connected exits of all routes
-     * @author Frederick Li
+     * @author Frederick Li, Mingchao Sima
      * @param boardString a string represents the game state
      * @return the score of all routes based on their connected exits
      */
      public static int countExitsScore(String boardString) {
          ArrayList<String> tiles = new ArrayList<>();
          for (int i = 0; i+5 <= boardString.length(); i += 5) {
-             tiles.add(boardString.substring(i, i+5));
+             if (!isB2Tile(boardString.substring(i, i+5))){
+                 tiles.add(boardString.substring(i, i+5));
+             }
+             else{
+                 tiles.addAll(replaceB2(boardString.substring(i, i+5)));
+             }
          }
 
-        HashMap<String, String> tilesMap = new HashMap<>(); // for quick locating pieces
-        for (String tile : tiles) {
-            tilesMap.put(tile.substring(2, 4),tile);
-        }
+         int count = 0;
+         int sum = 0;
+         boolean flag = true;    // This flag determines whether this route can be expanded
 
-        int count = 0;
-        int sum = 0;
-        boolean flag = true;    // This flag determines whether this route can be expanded
+         // Use HashSets to remove duplicates
 
-        // Use HashSets to remove duplicates
-        HashSet<String> b2Tiles = new HashSet<>();
-        HashSet<String> connectedTiles = new HashSet<>();
-        HashSet<String> route = new HashSet<>();
+         HashSet<String> connectedTiles = new HashSet<>();
+         HashSet<String> route = new HashSet<>();
 
-        while (!tiles.stream().allMatch(HelperMethod::isB2Tile))
-        {
-            while (flag) {
-                if (route.isEmpty()) {
-                    for (String tile : tiles) {
-                        if (isExitConnected(tile) && !isB2Tile(tile)) {
-                            route.add(tile);
-                            connectedTiles.add(tile);
-                            break;
-                        }
-                        else if (isExitConnected(tile) && isB2Tile(tile)) {
-                            ArrayList<String> neighbours= getNeighbours(tile,tilesMap);
-                            if (neighbours.size() == 1) {
-                                route.add(tile);
-                                connectedTiles.add(tile);
-                                break;
-                            }
-                        }
-
-                    }
-
-                }
-                if (route.isEmpty()) {
-                    route.add(tiles.stream().filter(i -> !isB2Tile(i)).findFirst().orElseThrow());
-                }
+         while (!tiles.isEmpty()) {
+            if (route.isEmpty()) {
                 for (String tile : tiles) {
-                    for (String tileCollected : route) {
-                        if (!areConnectedNeighbours(tileCollected, tile)) continue;
-                        if (!isB2Tile(tile)) {
-                            connectedTiles.add(tile);
-                            break;
-                        }
-                        searchSameLine(tileCollected, tile, connectedTiles, b2Tiles, tilesMap);
-
-                    }
-
-                }
-                flag = false;
-
-                // Update route and tiles
-                route.addAll(connectedTiles);
-                tiles.removeAll(connectedTiles);
-                for (String tile : connectedTiles) {
-                    tilesMap.remove(tile.substring(2, 4));
-                }
-                connectedTiles.clear();
-
-                // Check whether the current route can be expanded
-                outerLoop:
-                for (String t : tiles) {
-                    for (String placed : route) {
-                        if (areConnectedNeighbours(t, placed)  &&
-                                (!isB2Tile(t) || !b2Tiles.contains(t))) {
-                            flag = true;
-                            break outerLoop;
-                            }
-
+                    if (isExitConnected(tile)) {
+                        route.add(tile);
+                        connectedTiles.add(tile);
+                        break;
                     }
                 }
+                route.add(tiles.get(0));
+                connectedTiles.add(tiles.get(0));
+            }
 
-                // additional check of B2 tile
-                outLoop:
-                for (String b2Tile : b2Tiles) {
-                    if (flag) {break;}
-                    ArrayList<String> neighbourPos =  getNeighbours(b2Tile,tilesMap);
-                    if (neighbourPos.isEmpty()) { continue ;}
-                    for (String position : neighbourPos) {
-                        if (isB2Tile(tilesMap.get(position))) {continue;}
-                        char searchRow, searchCol;
-                        if (position.charAt(0) == b2Tile.charAt(2)) {
-                            searchRow = position.charAt(0);
-                            searchCol = (char) (position.charAt(1) < b2Tile.charAt(3) ?
-                                    b2Tile.charAt(3)+1 : b2Tile.charAt(3)-1);
-                        } else {
-                            searchRow = (char) (position.charAt(0) < b2Tile.charAt(2) ?
-                                    b2Tile.charAt(2)+1 : b2Tile.charAt(2)-1);
-                            searchCol = position.charAt(1);
+            for (String tileCollected : route) {
+                connectedTiles.addAll(getNeighbours(tileCollected, tiles));
+            }
+
+            flag = false;
+
+            // Update route and tiles
+            route.addAll(connectedTiles);
+            tiles.removeAll(connectedTiles);
+
+            // Check whether the current route can be expanded
+            outerLoop:
+            for (String t : tiles) {
+                for (String placed : connectedTiles) {
+                    if (areConnectedNeighbours(t, placed)) {
+                        flag = true;
+                        break outerLoop;
                         }
-                        for (String routeTile : route) {
-                            if (routeTile.charAt(2) == searchRow &&
-                                    routeTile.charAt(3) == searchCol) {
-                                flag = true;
-                                String removeTile = tilesMap.remove(position);
-                                tiles.remove(removeTile);
-                                route.add(removeTile);
-                                break outLoop;
-                            }
-                        }
-                    }
-
-                }
-
-                // Count exits and start a new route
-                if (!flag) {
-                    route.addAll(b2Tiles);
-                    for (String b2Tile :b2Tiles) {
-                        if (isExitConnected(b2Tile)
-                        && isB2TileNeedRemoved(b2Tile, route)) {
-                            route.remove(b2Tile);
-                        }
-                    }
-                    b2Tiles.clear();
-                    for (String t : route) {
-                        if (isExitConnected(t))
-                            count++;
-                    }
-                    route.clear();
-
-                    if (count == 12)
-                        sum += 45;
-                    else if (count >= 2)
-                        sum += count * 4 - 4;
-                    count = 0;
                 }
             }
-            flag = true;
-        }
+            connectedTiles.clear();
+
+            // Count exits and start a new route
+            if (!flag) {
+                for (String t : route) {
+                    if (isExitConnected(t))
+                        count++;
+                }
+                route.clear();
+
+                if (count == 12)
+                    sum += 45;
+                else if (count >= 2)
+                    sum += count * 4 - 4;
+                count = 0;
+            }
+         }
         return sum;
-
-    }
-
-
-
-    /**
-     * This is a helper method for countExitsScore, where B2 tile is connected to an exit
-     * @author Frederick Li
-     * @param b2Tile B2 tile
-     * @param route a HashSet of tile placements
-     * @return boolean
-     */
-    static boolean isB2TileNeedRemoved(String b2Tile, HashSet<String> route) {
-        HashMap<String, String> tilesMap = new HashMap<>(); // for quick locating pieces
-        for (String routeTile : route) {
-            tilesMap.put(routeTile.substring(2, 4),routeTile);
-        }
-
-        var row = b2Tile.charAt(2);
-        var col = b2Tile.charAt(3);
-        if (row == 'A' || row == 'G') {
-            char findRow = (char) (row == 'A' ? row+1 : row-1);
-            while(true) {
-                if ((row == 'A' && findRow == 'G') || (row == 'G' && findRow == 'A')) {
-                    return false;
-                }
-                String findPos = String.valueOf(findRow) + String.valueOf(col);
-                String routeTile = tilesMap.get(findPos);
-                if (routeTile == null) {
-                    return true;
-                } else if (!isB2Tile(routeTile)) {
-                    return false;
-                } else {
-                    findRow = (char) (row == 'A' ? ++findRow : --findRow);
-                }
-            }
-        } else {
-            char findCol = (char) (col == '0' ? col+1 : col-1);
-            while(true) {
-                if ((col == '0' && findCol == '6') || (col == '6' && findCol == '0')) {
-                    return false;
-                }
-                String findPos = String.valueOf(row) + String.valueOf(findCol);
-                String routeTile = tilesMap.get(findPos);
-                if (routeTile == null) {
-                    return true;
-                } else if (!isB2Tile(routeTile)) {
-                    return false;
-                } else {
-                    findCol = (char) (col == '0' ? ++findCol: --findCol);
-                }
-            }
-        }
     }
 
 
     /**
      * This method is to get the tiles neighbours from the map if they are existed
-     * @author Frederick Li
+     * @author Frederick Li, Mingchao Sima
      * @param tile the target tile
-     * @param tilesMap a HashMap whose key is the position, whose value is the tile placement string
+     * @param tiles an ArrayList contain unconnected tiles from boardString
      * @return an ArrayList of all neighbours' positions
      */
-     static ArrayList<String> getNeighbours(String tile, HashMap<String, String> tilesMap) {
-        var position = tile.substring(2, 4);
+     static ArrayList<String> getNeighbours(String tile, ArrayList<String> tiles) {
         ArrayList<String> result = new ArrayList<>();
-        var row = position.charAt(0);
-        var col = position.charAt(1);
-        for (char i = row == 'A' ? row : (char) (row - 1); i <= row + 1; i++) {
-            for (char j = col == '0' ? col : (char) (col - 1); j <= col + 1; j++) {
-                if (i > 'G' || j > '6') {
-                    continue;
-                }
-                if (Math.abs(i - row) == 1 && Math.abs(j - col) == 1) {
-                    continue;
-                }
-                if (i == row && j == col) {
-                    continue;
-                }
-                result.add(String.valueOf(i) + String.valueOf(j));
-            }
-        }
-        result.removeIf(t->!tilesMap.containsKey(t));
+         for (int i = 0; i < tiles.size(); i++) {
+             if (areConnectedNeighbours(tile, tiles.get(i))){
+                 result.add(tiles.get(i));
+             }
+         }
         return result;
-    }
-
-    /**
-     * This method is to search for more connected tiles after finding the B2 tile
-     * @author Frederick Li
-     * @param lastTile the previous tile connected to the B2 tile
-     * @param b2Tile the target B2 tile
-     * @param connectedTiles a HashSet which contain the tiles of this route
-     * @param b2Tiles a HashSet which contain the B2 tiles of the route
-     * @param tilesMap a HashMap whose key is the position, whose value is the tile placement string
-     */
-     static void searchSameLine(String lastTile, String b2Tile, HashSet<String> connectedTiles,
-                                       HashSet<String> b2Tiles, HashMap<String, String> tilesMap) {
-        b2Tiles.add(b2Tile);
-        char row, col;
-        if (b2Tile.charAt(2) == lastTile.charAt(2)) {
-            row = b2Tile.charAt(2);
-            col = b2Tile.charAt(3) > lastTile.charAt(3) ?(char) (b2Tile.charAt(3)+1) :
-                    (char) (b2Tile.charAt(3) -1);
-        }
-        else {
-            col = b2Tile.charAt(3);
-            row = b2Tile.charAt(2) > lastTile.charAt(2) ? (char) (b2Tile.charAt(2)+1) :
-                    (char) (b2Tile.charAt(2)-1);
-        }
-        String position = String.valueOf(row) + String.valueOf(col);
-        String tile = tilesMap.get(position);
-        if (null != tile && areConnectedNeighbours(tile, b2Tile)) {
-            if (!isB2Tile(tile)) {
-                connectedTiles.add(tile);
-            } else {
-                searchSameLine(b2Tile, tile, connectedTiles, b2Tiles, tilesMap);
-            }
-        }
     }
 
     /**

@@ -99,6 +99,7 @@ public class Viewer extends Application {
 
     /**
      * This method is help to draw 12 exits
+     * @author Mingchao Sima
      * @param group a board Group which will add these exits
      */
     private void drawExits(Group group) {
@@ -679,7 +680,7 @@ public class Viewer extends Application {
             Button button = new Button("Refresh");
             button.setOnAction(e -> {
                 makePlacement(textField.getText(), false);
-                textField.clear();
+                //textField.clear();
             });
             hb.getChildren().addAll(label1, textField, button);
             hb.setSpacing(10);
