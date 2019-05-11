@@ -89,14 +89,14 @@ public class HelperMethod {
         return false;
     }
 
-    /**
-     * replace the B2 tile with two single tiles
-     * @author Mingchao Sima
-     * @param B2 a String of B2 tile with any location or orientation
-     * @return the String of the replaced version
-     */
 
-    static ArrayList<String> replaceB2  (String B2) {
+    /**
+     * Replace the B2 tile with two single tiles
+     * @author Mingchao Sima
+     * @param B2 a String of B2 tile placement
+     * @return the ArrayList of the replaced tiles
+     */
+    private static ArrayList<String> replaceB2(String B2) {
         ArrayList<String> replace = new ArrayList<>();
          if (getShape(B2.toCharArray(), B2.charAt(4)).charAt(0) == 'h'){
              replace.add("A1"+B2.substring(2,4)+"1");
@@ -107,6 +107,7 @@ public class HelperMethod {
          }
         return replace;
     }
+
 
     /**
      * Count the total scores of connected exits of all routes
@@ -128,8 +129,6 @@ public class HelperMethod {
          int count = 0;
          int sum = 0;
          boolean flag = true;    // This flag determines whether this route can be expanded
-
-         // Use HashSets to remove duplicates
 
          HashSet<String> connectedTiles = new HashSet<>();
          HashSet<String> route = new HashSet<>();
@@ -164,7 +163,7 @@ public class HelperMethod {
                     if (areConnectedNeighbours(t, placed)) {
                         flag = true;
                         break outerLoop;
-                        }
+                    }
                 }
             }
             connectedTiles.clear();
@@ -189,13 +188,13 @@ public class HelperMethod {
 
 
     /**
-     * This method is to get the tiles neighbours from the map if they are existed
-     * @author Frederick Li, Mingchao Sima
+     * This method is to get the neighbouring tiles of a tile from a list tiles
+     * @author Mingchao Sima
      * @param tile the target tile
-     * @param tiles an ArrayList contain unconnected tiles from boardString
-     * @return an ArrayList of all neighbours' positions
+     * @param tiles an ArrayList contains all unconnected tiles
+     * @return an ArrayList of all neighbouring tiles
      */
-     static ArrayList<String> getNeighbours(String tile, ArrayList<String> tiles) {
+     private static ArrayList<String> getNeighbours(String tile, ArrayList<String> tiles) {
         ArrayList<String> result = new ArrayList<>();
          for (int i = 0; i < tiles.size(); i++) {
              if (areConnectedNeighbours(tile, tiles.get(i))){
@@ -205,13 +204,14 @@ public class HelperMethod {
         return result;
     }
 
+
     /**
      * This method is to check whether a tile is B2 tile
      * @author Frederick Li
      * @param placement tile placement string
      * @return boolean
      */
-     static boolean isB2Tile(String placement) {
+     private static boolean isB2Tile(String placement) {
         return placement.charAt(0) == 'B' && placement.charAt(1) == '2';
     }
 
@@ -296,13 +296,14 @@ public class HelperMethod {
         return -errors;
     }
 
+
     /**
-     * Returns the longest string in the list.
+     * Returns the longest move in the list. A helper method for task 10
      * @author Frederick Li
-     * @param moves a List of String.
-     * @return the longest string
+     * @param moves a List of moves
+     * @return the longest move
      */
-     static String max(List<String> moves) {
+     static String longestMove(HashSet<String> moves) {
         String longestMove = "";
         for (String move :moves) {
             if (move.length() > longestMove.length()) {
@@ -344,7 +345,7 @@ public class HelperMethod {
      * This method is to check whether all neighbouring tiles
      *      are validly connected for a new placement string
      * @author Frederick Li
-     * @param boardString a string represents game state
+     * @param boardString the original game state
      * @param newPlacementString a sequence of new placements
      * @return boolean
      */
@@ -436,7 +437,7 @@ public class HelperMethod {
      * @param tileB tilePlacement
      * @param c either 'r' or 'h'
      */
-    static boolean checkEdge(String tileA, String tileB, char c) {
+    private static boolean checkEdge(String tileA, String tileB, char c) {
         String tileAShape = getShape(tileA.toCharArray(), tileA.charAt(4));
         String tileBShape = getShape(tileB.toCharArray(), tileB.charAt(4));
 
@@ -459,11 +460,11 @@ public class HelperMethod {
     /**
      * This class represents the connection of a route
      */
-    static class RouteGraph {
+    static class TileGraph {
         private HashMap<String, LinkedList<String>> adj; // adjacent tiles collection
         private int vertices;
 
-        public RouteGraph(int vertices) {
+        public TileGraph(int vertices) {
             this.vertices = vertices;
             adj = new HashMap<>();
         }
@@ -506,17 +507,20 @@ public class HelperMethod {
     public static int findLongestRoad(String[] tiles, char k) {
         HashSet<String> tilePlacements = new HashSet<>();
         Collections.addAll(tilePlacements,tiles);
-        RouteGraph tileGraph = new RouteGraph(tilePlacements.size());
-        for (String tile:
-             tilePlacements) {
+        TileGraph tileGraph = new TileGraph(tilePlacements.size());
+
+        // initialize tile graph
+        for (String tile : tilePlacements) {
             LinkedList<String> neighbours = new LinkedList<>();
             tileGraph.adj.put(tile, neighbours);
 
         }
+
+        // generate the full graph
         for (String keyTile : tilePlacements) {
             for (String checkingTile: tilePlacements) {
                 if (areConnectedNeighbours(keyTile,checkingTile) &&
-                checkEdge(keyTile, checkingTile, k)) {
+                     checkEdge(keyTile, checkingTile, k)) {
                     LinkedList<String> neighbours = tileGraph.adj.get(keyTile);
                     neighbours.add(checkingTile);
                 }
@@ -530,7 +534,7 @@ public class HelperMethod {
                 visited.put(key, false);
             }
             int[] max = {Integer.MIN_VALUE};
-            tileGraph.findLongestRoadRec(startTile,visited ,1 ,max );
+            tileGraph.findLongestRoadRec(startTile,visited ,1 ,max ); // recursively find the longest road
             maxCollections.add(max[0]);
 
         }

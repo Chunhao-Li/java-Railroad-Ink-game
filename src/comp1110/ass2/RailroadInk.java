@@ -199,7 +199,6 @@ public class RailroadInk {
      */
     public static int getBasicScore(String boardString) {
         // FIXME Task 8: compute the basic score
-
         String[] tilePlacements = new String[boardString.length()/5];
         for (int i = 0; i+5 <= boardString.length(); i += 5) {
             tilePlacements[i/5] = boardString.substring(i, i+5);
@@ -232,66 +231,65 @@ public class RailroadInk {
      */
     public static String generateMove(String boardString, String diceRoll) {
         // FIXME Task 10: generate a valid move
-
-
         List<String> tiles = new ArrayList<>(4);
         for (int i = 0; i+2 <= diceRoll.length(); i+=2) {
             tiles.add(diceRoll.substring(i, i+2));
         }
 
+        // this List contains the board positions of unused grids
+        List<String> unUsedGridsBase = getUnusedGrids(boardString);
 
-        List<String> unUsedGridsBase = getUnusedGrids(boardString); // this List contains the board positions of unused grids
+        // this contains all valid moves
+        HashSet<String> validMoves = new HashSet<>();
 
-        List<String> validMoves = new ArrayList<>();
         int count = 0;
         while ( count < 4) {
-
             List<String> unUsedGrids = new ArrayList<>(unUsedGridsBase);
-
-            HashMap<Integer, List<StringBuilder>> movesCollection = new HashMap<>();    // key: the order of the move
-            List<StringBuilder> base =  new ArrayList<>();
-            base.add(new StringBuilder(""));
-            movesCollection.put(-1, base);
+            HashMap<Integer, List<String>> movesCollection = new HashMap<>();    // key: the order of the move
+            List<String> base =  new ArrayList<>();
+            base.add("");
+            movesCollection.put(-1, base);  // the base move
             for (int i = 0; i < tiles.size(); i++) {
+                List<String> lastMoves = movesCollection.get(i-1);
+                if (null == lastMoves) {break;}
                 String tile = tiles.get(i);
-                List<StringBuilder> lastMoves = movesCollection.get(i-1);
+                List<Character> orientations = getOrientations(tile);
                 outLoop:
                 for (String unUsedGrid : unUsedGrids) {
-                    List<Character> orientations = getOrientations(tile);
                     for (char o : orientations) {
                         String aMove = tile + unUsedGrid + o;
-                        if (null != lastMoves) {
-                            for (StringBuilder lastMove : lastMoves) {
-                                if (isValidPlacementSequence(boardString + lastMove.toString() + aMove)) {
-                                    movesCollection.computeIfAbsent(i, k -> new ArrayList<>());
-                                    List<StringBuilder> currentMoves = movesCollection.get(i);
-                                    currentMoves.add(new StringBuilder(lastMove+aMove));
-                                    unUsedGrids.remove(unUsedGrid);
-                                    break outLoop;
+                            for (String lastMove : lastMoves) {
+                                if (isValidPlacementSequence(boardString + lastMove + aMove)) {
+                                    String newMove = lastMove + aMove;
 
+                                    // all 4 normal tiles have been placed
+                                    if (i == 3) {
+                                        return newMove;
+                                    }
+
+                                    movesCollection.computeIfAbsent(i, k -> new ArrayList<>());
+                                    List<String> currentMoves = movesCollection.get(i);
+                                    currentMoves.add(lastMove + aMove);
+                                    unUsedGrids.remove(unUsedGrid);
+                                    movesCollection.remove(i-1); // save memory
+                                    break outLoop;
                                 }
                             }
                         }
                     }
+            }
 
+            for (int i = 3; i >= 0 ; i--) {
+                if (movesCollection.get(i) != null) {
+                    validMoves.addAll(movesCollection.get(i));
+                    break;
                 }
             }
-            tiles.add(tiles.remove(0));
-            HashSet<StringBuilder> allMoves = new HashSet<>();
-            for (Map.Entry<Integer, List<StringBuilder>> entry : movesCollection.entrySet()) {
-                allMoves.addAll(entry.getValue());
-            }
-            for (StringBuilder m : allMoves) {
-                if (areNeighboursValid(boardString, m.toString())) {
-                    validMoves.add(m.toString());
-                }
-
-            }
+            tiles.add(tiles.remove(0)); // shift rotate the tiles ordering
             count++;
 
         }
-        return max(validMoves);
-
+        return longestMove(validMoves);
     }
 
 

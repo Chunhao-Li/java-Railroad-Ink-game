@@ -39,7 +39,6 @@ public class Viewer extends Application {
     private static final double Tile_Size = 80;
     private static final int X_Side = 232;   //(VIEWER_WIDTH - Tile_Size * 7)/2
     private static final int Y_Side = 104;   //(VIEWER_HEIGHT - Tile_Size * 7)/2
-
     private final Group mainGroup = new Group();
     private final Group boardSingleMode = new Group();
     private final Group boardAiModeA = new Group();
@@ -80,16 +79,20 @@ public class Viewer extends Application {
         // FIXME Task 4: implement the simple placement viewer
         pieces.getChildren().clear();
         for (int i = placement.length() - 5; i >= 0; i -= 5) {
-            ImageView tileImage = new ImageView(new Image(
-                    Viewer.class.getResource(URI_BASE + placement.substring(i, i + 2) + ".png").toString()));
-            tileImage.setFitWidth(Tile_Size);
-            tileImage.setFitHeight(Tile_Size);
-            tileImage.setLayoutY(Y_Side + (placement.charAt(i + 2) - 'A') * Tile_Size);
-            tileImage.setLayoutX(X_Side + (placement.charAt(i + 3) - '0') * Tile_Size);
-            int orientation = placement.charAt(i + 4) - '0';
-            if (orientation > 3) tileImage.setScaleX(-1);
-            tileImage.setRotate(orientation < 4 ? orientation * 90 : (orientation - 4) * 90);
-            pieces.getChildren().add(tileImage);
+            try {
+                ImageView tileImage = new ImageView(new Image(
+                        Viewer.class.getResource(URI_BASE + placement.substring(i, i + 2) + ".png").toString()));
+                tileImage.setFitWidth(Tile_Size);
+                tileImage.setFitHeight(Tile_Size);
+                tileImage.setLayoutY(Y_Side + (placement.charAt(i + 2) - 'A') * Tile_Size);
+                tileImage.setLayoutX(X_Side + (placement.charAt(i + 3) - '0') * Tile_Size);
+                int orientation = placement.charAt(i + 4) - '0';
+                if (orientation > 3) tileImage.setScaleX(-1);
+                tileImage.setRotate(orientation < 4 ? orientation * 90 : (orientation - 4) * 90);
+                pieces.getChildren().add(tileImage);
+            } catch (NullPointerException e) {  // invalid text
+                return;
+            }
         }
         if (isAIMode) {
             dicesAI = "";
@@ -680,7 +683,7 @@ public class Viewer extends Application {
             Button button = new Button("Refresh");
             button.setOnAction(e -> {
                 makePlacement(textField.getText(), false);
-                //textField.clear();
+                textField.clear();
             });
             hb.getChildren().addAll(label1, textField, button);
             hb.setSpacing(10);
