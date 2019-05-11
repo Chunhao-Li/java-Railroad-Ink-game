@@ -577,31 +577,6 @@ public class HelperMethod {
         return board;
     }
 
-    /**
-     * This method is to check whether a tile is a railway (all edges are railway)
-     *      B2 is excluded.
-     * @author Frederick Li
-     * @param tilePlacement a 5 characters string represents a tile
-     */
-    static boolean isRailway(String tilePlacement) {
-        String tileKind = tilePlacement.substring(0, 2);
-        return tileKind.equals("S3") || tileKind.equals("A0") ||
-                tileKind.equals("A1") || tileKind.equals("A2");
-    }
-
-
-    /**
-     * This method is to check whether a tile is a highway (all edges are highway)
-     *      B2 is excluded.
-     * @author Frederick Li
-     * @param tilePlacement a 5 characters string represents a tile
-     */
-    static boolean isHighway(String tilePlacement){
-        String tileKind = tilePlacement.substring(0, 2);
-        return tileKind.equals("S2") || tileKind.equals("A3") ||
-                tileKind.equals("A4") || tileKind.equals("A5");
-    }
-
 
     /**
      * This method is to check whether two connected tiles have the same edge c ( r or h)
