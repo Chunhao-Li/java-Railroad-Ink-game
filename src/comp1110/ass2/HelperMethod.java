@@ -10,7 +10,7 @@ public class HelperMethod {
      * h: represents highway edge
      * r: represents railway edge
      * #: represents blank edge
-     * @author Frederick Li
+     * @author Frederick Li, Haoyan Liu
      * @param tilePlacement a char array of tile placement which contains 5 elements.
      * @param orientation a char which is in the range '0'-'7'
      * @return a string which represents the shape of the tile

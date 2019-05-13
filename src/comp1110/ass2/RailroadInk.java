@@ -76,7 +76,7 @@ public class RailroadInk {
      * - areConnectedNeighbours("A0B30", "A3B23") would return false as these neighbouring tiles have an
      * invalid connection between highway and railway; and
      * areConnectedNeighbours("A0B30", "A3C23") would return false as these tiles are not neighbours.
-     * @author Frederick Li
+     * @author Frederick Li, Haoyan Liu
      * @return true if the placements are connected neighbours
      */
 
@@ -167,34 +167,22 @@ public class RailroadInk {
      * Die B has faces numbered 0-2.
      * Each die roll is composed of a character 'A' or 'B' representing the dice,
      * followed by a digit character representing the face.
-     *
+     * @author Haoyan Liu
      * @return a String representing the die roll e.g. A0A4A3B2
      */
     public static String generateDiceRoll() {
         // FIXME Task 7: generate a dice roll
-//        StringBuilder sb = new StringBuilder();
-//        int count = 3;
-//        Random generator = new Random();
-//        while (count > 0) {
-//            sb.append('A').append(String.valueOf((int) (generator.nextDouble()*6)));
-//            count--;
-//        }
-//        sb.append('B').append(String.valueOf((int) (generator.nextDouble()*3)));
-//        return sb.toString();
-//    }
-
-        String[] rolls = {"AAAB", "AABA", "ABAA", "BAAA"};
         Random random = new Random();
-        String roll = rolls[random.nextInt(4)];
+        String roll = "AAAB";
         String result = "";
         for (int i = 0; i <4; i++) {
             char dice = roll.charAt(i);
             result = result + roll.charAt(i);
             if (dice == 'A') {
-                result = result + random.nextInt(5);
+                result = result + random.nextInt(6);
             }
             if (dice=='B') {
-                result = result + random.nextInt(2);
+                result = result + random.nextInt(3);
             }
         }
         return result;
