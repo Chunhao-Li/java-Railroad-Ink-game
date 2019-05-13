@@ -1,4 +1,4 @@
-Reviewer: Mary Jones (u2345678)
+Reviewer: Mingchao Sima (u6502811)
 Component: task 5: areConnectedNeighbours
 Author: Haoyan Liu (u6720989) and Chunhao Li (u6527752)
 
