@@ -11,17 +11,17 @@ public class HelperMethod {
      * r: represents railway edge
      * #: represents blank edge
      * @author Frederick Li, Haoyan Liu
-     * @param tilePlacement a char array of tile placement which contains 5 elements.
+     * @param tilePlacement a char array of tile placement which contains 5 elements."B0A53"
      * @param orientation a char which is in the range '0'-'7'
      * @return a string which represents the shape of the tile
      */
      static String getShape(char[] tilePlacement, char orientation) {
         String[] shapeA = {"rr##", "r#r#", "r#rr", "h#hh", "h#h#", "hh##"}; // shapes of A with orientation '0'
-        String[] shapeB = {"h#r#", "h##r", "hrhr"};
-        String[] shapeS = {"hhrh", "hrrr", "hhhh", "rrrr", "hhrr", "hrhr"};
+        String[] shapeB = {"h#r#", "h##r", "hrhr"};//shape of B with orientation 0
+        String[] shapeS = {"hhrh", "hrrr", "hhhh", "rrrr", "hhrr", "hrhr"};//shape of S with orientation 0
         char[] shape;
         if (tilePlacement[0] == 'A') {
-            shape = shapeA[tilePlacement[1] - '0'].toCharArray();
+            shape = shapeA[tilePlacement[1] - '0'].toCharArray();// shape char output
         }
         else if (tilePlacement[0] == 'B') {
             shape = shapeB[tilePlacement[1] - '0'].toCharArray();
@@ -33,7 +33,7 @@ public class HelperMethod {
         if (orientation > '3') {
             char temp = shape[3];
             shape[3] = shape[1];
-            shape[1] = temp;
+            shape[1] = temp;//exchange ( see the shape)
         }
         String flipped = String.valueOf(shape);
         int offset = orientation > '3' ?(int) orientation  - '0' - 4 : (int) orientation - '0';
@@ -77,13 +77,17 @@ public class HelperMethod {
         char[] aShape = getShape(a, a[4]).toCharArray();
 
         if ((a[2] == 'A' || a[2] == 'G') && (a[3] == '1' || a[3] == '3' || a[3] == '5')) {
-            if ((a[3] == '1' || a[3] =='5') && aShape[a[2] == 'A' ? 0 : 2] == 'h') {return true;}
-            else {return (a[3] == '3' && aShape[a[2] == 'A' ? 0 : 2] == 'r');}
+            if ((a[3] == '1' || a[3] =='5') && aShape[a[2] == 'A' ? 0 : 2] == 'h')
+            {return true;}
+            else
+                {return (a[3] == '3' && aShape[a[2] == 'A' ? 0 : 2] == 'r');}
         }
-
-        else if ((a[2] == 'B' || a[2] == 'D' || a[2] == 'F') && (a[3] == '0' || a[3] == '6')) {
-            if ((a[2] == 'B' || a[2] == 'F') && aShape[a[3] == '0' ? 1 : 3] == 'r') {return true;}
-            else {return (a[2] == 'D' && aShape[a[3] == '0' ? 1 : 3] == 'h');}
+        else
+            if ((a[2] == 'B' || a[2] == 'D' || a[2] == 'F') && (a[3] == '0' || a[3] == '6')) {
+            if ((a[2] == 'B' || a[2] == 'F') && aShape[a[3] == '0' ? 1 : 3] == 'r')
+            {return true;}
+            else
+                {return (a[2] == 'D' && aShape[a[3] == '0' ? 1 : 3] == 'h');}
         }
 
         return false;
