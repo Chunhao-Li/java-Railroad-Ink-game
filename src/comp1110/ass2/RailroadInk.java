@@ -173,7 +173,8 @@ public class RailroadInk {
     public static String generateDiceRoll() {
         // FIXME Task 7: generate a dice roll
         Random random = new Random();
-        String roll = "AAAB";
+        String [] rolls={"AAAB","ABAA","AABA","BAAA"};
+        String roll = rolls[0];
         String result = "";
         for (int i = 0; i <4; i++) {
             char dice = roll.charAt(i);
