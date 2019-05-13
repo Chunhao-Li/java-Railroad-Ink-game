@@ -27,10 +27,28 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A very simple viewer for tile placements in the Railroad Ink game.
+ * This is a JavaFX application that gives a graphical user interface (GUI) to the Railroad Ink game.
  * <p>
- * NOTE: This class is separate from your main game class.  This
- * class does not play a game, it just illustrates various tile placements.
+ * @author Frederick Li, Mingchao Sima (makePlacement and drawExits)
+ * The game feature:
+ * - It has three modes (single mode), (ai mode), (debug mode) which correspond to the button
+ * -    "Single game", "Play with computer", "Debug mode" in the main page.
+ * - In every mode, users can press "ESCAPE" to quit current game and go back to the main page.
+ * - In the main page, useres can press "Q" to quit the game
+ * - Single Mode:
+ * -    Users can press "Roll a dice" to start a new turn, and press "clear" to end the current game
+ * -    Users can rotate the tiles using mouse scroll on tiles
+ * -    Users can drag tiles and put them on the board
+ * -    All other rules are in README.md.
+ * - AI Mode:
+ * -    "Change to AI" button can enable AI to play moves.
+ * -    In every turn except turn 7, users need to press "Change to AI" before the next turn.
+ * -    Users can press "New Game" to end the current game and start a new one.
+ * -    Users can press "Change to AI" to change the board to AI's, and "Go back to player" to switch back
+ * -    All other rules are in README.md.
+ * - Debug Mode:
+ * -    Users can input any tile placements in the TextFiled and then press "Refresh" to show them
+ * -    When users input any illegal texts in the TextFiled, "Refresh" can clear the current tiles.
  */
 public class Viewer extends Application {
     private static final double VIEWER_WIDTH = 1024;
@@ -72,7 +90,7 @@ public class Viewer extends Application {
 
     /**
      * Draw a placement in the window, removing any previously drawn one
-     *
+     * @author Mingchao Sima, Frederick Li
      * @param placement A valid placement string
      */
     public void makePlacement(String placement, boolean isAIMode) {

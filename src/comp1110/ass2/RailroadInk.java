@@ -13,7 +13,7 @@ public class RailroadInk {
      * - the third character represents the placement row A-G
      * - the fourth character represents the placement column 0-6
      * - the fifth character represents the orientation 0-7
-     *
+     * @author Frederick Li
      * @param tilePlacementString a candidate tile placement string
      * @return true if the tile placement is well formed
      */
@@ -39,7 +39,7 @@ public class RailroadInk {
      * - it consists of exactly N five-character tile placements (where N = 1 .. 31);
      * - each piece placement is well-formed
      * - no more than three special tiles are included
-     *
+     * @author Frederick Li
      * @param boardString a board string describing the placement of one or more pieces
      * @return true if the board string is well-formed
      */
@@ -76,7 +76,7 @@ public class RailroadInk {
      * - areConnectedNeighbours("A0B30", "A3B23") would return false as these neighbouring tiles have an
      * invalid connection between highway and railway; and
      * areConnectedNeighbours("A0B30", "A3C23") would return false as these tiles are not neighbours.
-     *
+     * @author Frederick Li
      * @return true if the placements are connected neighbours
      */
 
@@ -121,7 +121,7 @@ public class RailroadInk {
      *   Highways and railways may only join at station tiles.
      * - A tile may have one or more edges touching a blank edge of another tile;
      *   this is referred to as disconnected, but the placement is still legal.
-     *
+     * @author Frederick Li
      * @param boardString a board string representing some placement sequence
      * @return true if placement sequence is valid
      */
@@ -193,7 +193,7 @@ public class RailroadInk {
      * * Number of exits mapped
      * * Number of centre tiles used
      * * Number of dead ends in the network
-     *
+     * @author Frederick Li
      * @param boardString a board string representing a completed game
      * @return integer (positive or negative) for score *not* considering longest rail/highway
      */
@@ -224,6 +224,7 @@ public class RailroadInk {
     /**
      * Given a valid boardString and a dice roll for the round,
      * return a String representing an ordered sequence of valid piece placements for the round.
+     * @author Frederick Li
      * @param boardString a board string representing the current state of the game as at the start of the round
      * @param diceRoll a String representing a dice roll for the round
      * @return a String representing an ordered sequence of valid piece placements for the current round
@@ -300,7 +301,7 @@ public class RailroadInk {
      * <p>
      * * Longest railroad
      * * Longest highway
-     *
+     * @author Frederick Li
      * @param boardString a board string representing a completed game
      * @return integer (positive or negative) for final score (not counting expansion packs)
      */
