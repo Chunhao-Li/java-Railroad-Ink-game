@@ -172,16 +172,34 @@ public class RailroadInk {
      */
     public static String generateDiceRoll() {
         // FIXME Task 7: generate a dice roll
-        StringBuilder sb = new StringBuilder();
-        int count = 3;
-        Random generator = new Random();
-        while (count > 0) {
-            sb.append('A').append(String.valueOf((int) (generator.nextDouble()*6)));
-            count--;
+//        StringBuilder sb = new StringBuilder();
+//        int count = 3;
+//        Random generator = new Random();
+//        while (count > 0) {
+//            sb.append('A').append(String.valueOf((int) (generator.nextDouble()*6)));
+//            count--;
+//        }
+//        sb.append('B').append(String.valueOf((int) (generator.nextDouble()*3)));
+//        return sb.toString();
+//    }
+
+        String[] rolls = {"AAAB", "AABA", "ABAA", "BAAA"};
+        Random random = new Random();
+        String roll = rolls[random.nextInt(4)];
+        String result = "";
+        for (int i = 0; i <4; i++) {
+            char dice = roll.charAt(i);
+            result = result + roll.charAt(i);
+            if (dice == 'A') {
+                result = result + random.nextInt(5);
+            }
+            if (dice=='B') {
+                result = result + random.nextInt(2);
+            }
         }
-        sb.append('B').append(String.valueOf((int) (generator.nextDouble()*3)));
-        return sb.toString();
+        return result;
     }
+
 
 
 
