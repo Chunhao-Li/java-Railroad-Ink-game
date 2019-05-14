@@ -47,8 +47,9 @@ import java.util.Set;
  * -    Users can press "Change to AI" to change the board to AI's, and "Go back to player" to switch back
  * -    All other rules are in README.md.
  * - Debug Mode:
- * -    Users can input any tile placements in the TextFiled and then press "Refresh" to show them
- * -    When users input any illegal texts in the TextFiled, "Refresh" can clear the current tiles.
+ * -    Users can input any tile placements in the TextField and then press "Refresh" to show them
+ * -    When users input any illegal texts in the TextField, "Refresh" can clear the current tiles.
+ * -    "Place tiles" can also place all tiles instead of clearing TextField.
  */
 public class Viewer extends Application {
     private static final double VIEWER_WIDTH = 1024;
@@ -699,11 +700,15 @@ public class Viewer extends Application {
             textField = new TextField();
             textField.setPrefWidth(300);
             Button button = new Button("Refresh");
+            Button placeTiles = new Button("Place tiles");
             button.setOnAction(e -> {
                 makePlacement(textField.getText(), false);
                 textField.clear();
             });
-            hb.getChildren().addAll(label1, textField, button);
+            placeTiles.setOnAction(e -> {
+                makePlacement(textField.getText(), false);
+            });
+            hb.getChildren().addAll(label1, textField, button, placeTiles);
             hb.setSpacing(10);
             hb.setLayoutX(130);
             hb.setLayoutY(VIEWER_HEIGHT - 50);

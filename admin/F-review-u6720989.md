@@ -3,7 +3,6 @@ Component: <Help method: getShape>
 Author: Frederick Li(u6527752)
 
 Review Comments:
-
 1. The code compiles and it is well-structured and named.
 2. Its class and methods used are correct and appropriate.
 3. It shows the method to describe the shape of the tile. The name consists of 3 letters 'h''r''#',
