@@ -1,11 +1,10 @@
 package comp1110.ass2.gui;
 
-import static comp1110.ass2.HelperMethod.*;
 import static comp1110.ass2.RailroadInk.*;
 
-import comp1110.ass2.HelperMethod;
 import javafx.application.Application;
-import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -20,7 +19,6 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -76,10 +74,12 @@ public class Viewer extends Application {
     private final Group root = new Group();
     private final Group controls = new Group();
     private final Group controlsAiP = new Group();  // Player to ai mode: player's control
-    private final Group controlsAiA = new Group();  // Player to ai mode: ai's control or ai to ai mode: first ai
+    private final Group controlsAiA = new Group();  // Player to ai mode: ai's control
+    private final Group controlsAi = new Group();
     private final Group controlsAiComponent = new Group();
     private final Group pieces = new Group();
     private final Group placedPieces = new Group();
+    private final Group aiPieces = new Group();
     private final Group generatingPieces = new Group();
     private final Group rootAIMode = new Group();
     private final Group aiBoardGroup = new Group();
@@ -99,18 +99,17 @@ public class Viewer extends Application {
     private String dicesAI = "";
     private int diceRollTimes = 0;
     private Text resultInfo = null;
+    private Text resultInfoAi = null;
     private Text turnInfo = null;
     private Text turnInfoAi = null;
-<<<<<<< HEAD
     private List<String> sTilesAi = new ArrayList<>();
     private List<String> sTileAiComponent = new ArrayList<>();
 
-=======
     //bob
-    private ImageView bgImg;
-    private ImageView ai_group_bgImg;
-    private static DraggablePiece operating_piece = null;
->>>>>>> 08562929d3763c18f22eb827c2589fe5415cfb16
+    private ImageView mainBgImg;
+    private ImageView boardBGImg;
+    private ImageView aiGroupImg;
+    private ImageView aiComponentImg;
 
     /**
      * Draw a placement in the window, removing any previously drawn one
@@ -118,9 +117,9 @@ public class Viewer extends Application {
      * @param placement A valid placement string
      * @author Mingchao Sima, Frederick Li
      */
-    public void makePlacement(String placement, boolean isAIMode) {
+    public void makePlacement(String placement, boolean isAIMode, Group group) {
         // FIXME Task 4: implement the simple placement viewer
-        pieces.getChildren().clear();
+        group.getChildren().clear();
         for (int i = placement.length() - 5; i >= 0; i -= 5) {
             try {
                 ImageView tileImage = new ImageView(new Image(
@@ -132,7 +131,7 @@ public class Viewer extends Application {
                 int orientation = placement.charAt(i + 4) - '0';
                 if (orientation > 3) tileImage.setScaleX(-1);
                 tileImage.setRotate(orientation < 4 ? orientation * 90 : (orientation - 4) * 90);
-                pieces.getChildren().add(tileImage);
+                group.getChildren().add(tileImage);
             } catch (NullPointerException e) {  // invalid text
                 return;
             }
@@ -302,12 +301,7 @@ public class Viewer extends Application {
         }
 
         private void rotate() {
-            rotation = rotation + 1;
-
-            //bob: safe check for upper bound for intensive or long time operation.
-            if (rotation == 8) {
-                rotation = 0;
-            }
+            rotation = (rotation + 1) % 4;
             this.setRotate(rotation * 90);
         }
 
@@ -432,10 +426,13 @@ public class Viewer extends Application {
      * - Drag and release the tile on the board to place it
      */
     private void handlePiece(Group group) {
+        BooleanProperty isDragging = new ReadOnlyBooleanWrapper(false);
         for (Node node : generatingPieces.getChildren()) {
             DraggablePiece piece = (DraggablePiece) node;
             piece.setOnScroll(e -> {
-                piece.rotate();
+                if (!isDragging.getValue()) {
+                    piece.rotate();
+                }
             });
 
             piece.setOnMouseClicked(e -> {
@@ -450,13 +447,12 @@ public class Viewer extends Application {
             });
 
             piece.setOnMousePressed(e -> {
-                //bob
-                operating_piece = piece;
                 piece.mouseX = e.getSceneX();
                 piece.mouseY = e.getSceneY();
             });
 
             piece.setOnMouseDragged(e -> {
+                isDragging.setValue(true);
                 piece.toFront();
                 double moveX = e.getSceneX() - piece.mouseX;
                 double moveY = e.getSceneY() - piece.mouseY;
@@ -466,8 +462,7 @@ public class Viewer extends Application {
             });
 
             piece.setOnMouseReleased(e -> {
-                //bob
-                operating_piece = null;
+                isDragging.setValue(false);
                 if (!piece.isOnBoard()) {
                     piece.snapToHome();
                 } else if (piece.isValid()) {
@@ -484,18 +479,17 @@ public class Viewer extends Application {
                         Alert alert = new Alert(Alert.AlertType.INFORMATION,
                                 "No more moves, press OK to get the score", ButtonType.OK);
                         alert.showAndWait();
-                        if (alert.getResult() == ButtonType.OK) {
-                            if (group == root) {
-                                int score = getAdvancedScore(boardString);
-                                resultInfo = new Text(VIEWER_WIDTH / 2, 60,
-                                        "Total Score: " + score);
-                                resultInfo.setFont(Font.font("Verdana", 20));
-                                group.getChildren().add(resultInfo);
-                            } else {
-                                aiBoardString += generateMove(aiBoardString, dicesAI);
-                                makePlacement(aiBoardString, true);
-                                calculateScoreAiMode(group);
-                            }
+                        if (group == root) {
+                            int score = getAdvancedScore(boardString);
+                            resultInfo = new Text(VIEWER_WIDTH / 2, 60,
+                                    "Total Score: " + score);
+                            resultInfo.setFont(Font.font("Verdana", 20));
+                            generatingPieces.getChildren().clear();
+                            group.getChildren().add(resultInfo);
+                        } else {
+                            aiBoardString += generateMove(aiBoardString, dicesAI);
+                            makePlacement(aiBoardString, true, pieces);
+                            calculateScoreAiMode(group);
                         }
                     } else if (!hasValidPlacement(false)
                             && hasValidPlacement(true)) {
@@ -509,10 +503,11 @@ public class Viewer extends Application {
                                 resultInfo = new Text(VIEWER_WIDTH / 2, (double) Y_Side / 2,
                                         "Advanced Score: " + score);
                                 resultInfo.setFont(Font.font("Verdana", 20));
+                                generatingPieces.getChildren().clear();
                                 group.getChildren().add(resultInfo);
                             } else {
                                 aiBoardString += generateMove(aiBoardString, dicesAI);
-                                makePlacement(aiBoardString, true);
+                                makePlacement(aiBoardString, true, pieces);
                                 calculateScoreAiMode(group);
                             }
                         }
@@ -560,7 +555,6 @@ public class Viewer extends Application {
         group.getChildren().addAll(scores, resultInfo);
         generatingPieces.getChildren().clear();
 
-
     }
 
 
@@ -569,23 +563,28 @@ public class Viewer extends Application {
         if (textField != null) {
             textField.clear();
         }
+        initSTiles();
         generatingPieces.getChildren().clear();
         placedPieces.getChildren().clear();
         sTilesNotPlaced.clear();
         diceRollTimes = sTilePerTurn = sTileTotal = 0;
         dices = dicesAI = boardString = aiBoardString = "";
+        resultInfo = resultInfoAi = null;
         pieces.getChildren().clear();
 
         rootAIMode.getChildren().clear();
-        rootAIMode.getChildren().addAll(boardAiModeA, controlsAiP, generatingPieces, placedPieces);
+        rootAIMode.getChildren().addAll(boardBGImg, boardAiModeP, generatingPieces, placedPieces);
 
         aiBoardGroup.getChildren().clear();
-        aiBoardGroup.getChildren().addAll(boardAiModeP, ai_group_bgImg, controlsAiA, pieces);
+        aiBoardGroup.getChildren().addAll(aiGroupImg, boardAiModeA, controlsAiA, pieces);
+
+        aiComponent.getChildren().clear();
+        aiComponent.getChildren().addAll(aiComponentImg, boardAiComponent, controlsAiComponent, aiPieces);
 
         root.getChildren().clear();
 
         //bob modified
-        root.getChildren().addAll(boardSingleMode, mainGroup, controls, generatingPieces, placedPieces, pieces);
+        root.getChildren().addAll(boardBGImg, boardSingleMode, controls, generatingPieces, placedPieces, pieces);
     }
 
 
@@ -599,24 +598,16 @@ public class Viewer extends Application {
      * @param primaryStage the main stage of the program
      */
     private void mainSceneSetting(Stage primaryStage) {
-
+        initSTiles();
         primaryStage.setScene(mainScene);
         //bob
         mainScene.getStylesheets().add(this.getClass().getResource("GameBoardBG.css").toExternalForm());
+
         mainScene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.Q) {
                 primaryStage.close();
             }
         });
-//        mainScene.setOnKeyPressed(e -> {
-//            System.out.println("bob = " + "mainScene");
-//            if (e.getCode() == KeyCode.F) {
-//                if (!operating_piece.isFlipped)
-//                    operating_piece.flipped();
-//                else
-//                    operating_piece.flippedBack();
-//            }
-//        });
 
         VBox vBox = new VBox();
         vBox.setAlignment(Pos.CENTER_LEFT);
@@ -629,6 +620,7 @@ public class Viewer extends Application {
         Button single = new Button("Single game");
         single.setOnAction(e -> {
             singleMode(primaryStage, true);
+
         });
 
         Button debug = new Button("Debug mode");
@@ -641,55 +633,73 @@ public class Viewer extends Application {
             aiMode(primaryStage);
         });
 
-<<<<<<< HEAD
         Button aiComponentMode = new Button("AI to AI");
         aiComponentMode.setOnAction(e -> {
             aiToAiMode(primaryStage);
         });
-=======
         //bob
         bgMusic.setCycleCount(Viewer.MUSIC_MODE);
         bgMusic.play(); // play music
 
-        bgImg = new ImageView();
-        bgImg.setImage(new Image(getClass().getResource(URI_BASE + "bg.jpg").toString()));
-        bgImg.setFitWidth(VIEWER_WIDTH);
-        bgImg.setFitHeight(VIEWER_HEIGHT);
-        bgImg.setOpacity(0.65); //set alpha
+        mainBgImg = new ImageView();
+        mainBgImg.setImage(new Image(getClass().getResource(URI_BASE + "bg.jpg").toString()));
+        mainBgImg.setFitWidth(VIEWER_WIDTH);
+        mainBgImg.setFitHeight(VIEWER_HEIGHT);
+        mainBgImg.setOpacity(0.8);
 
-        ai_group_bgImg = new ImageView();
-        ai_group_bgImg.setImage(new Image(getClass().getResource(URI_BASE + "bg.jpg").toString()));
-        ai_group_bgImg.setFitWidth(VIEWER_WIDTH);
-        ai_group_bgImg.setFitHeight(VIEWER_HEIGHT);
-        ai_group_bgImg.setOpacity(0.65); //set alpha
+        boardBGImg = new ImageView();
+        boardBGImg.setImage(new Image(getClass().getResource(URI_BASE + "boardBG.jpg").toString()));
+        boardBGImg.setFitWidth(VIEWER_WIDTH);
+        boardBGImg.setFitHeight(VIEWER_HEIGHT);
+        boardBGImg.setOpacity(0.45);
 
->>>>>>> 08562929d3763c18f22eb827c2589fe5415cfb16
-        vBox.getChildren().addAll(single, computerMode, debug);
+        aiGroupImg = new ImageView();
+        aiGroupImg.setImage(new Image(getClass().getResource(URI_BASE + "boardBG.jpg").toString()));
+        aiGroupImg.setFitWidth(VIEWER_WIDTH);
+        aiGroupImg.setFitHeight(VIEWER_HEIGHT);
+        aiGroupImg.setOpacity(0.45);
+
+        aiComponentImg = new ImageView();
+        aiComponentImg.setImage(new Image(getClass().getResource(URI_BASE + "boardBG.jpg").toString()));
+        aiComponentImg.setFitWidth(VIEWER_WIDTH);
+        aiComponentImg.setFitHeight(VIEWER_HEIGHT);
+        aiComponentImg.setOpacity(0.45);
+
+        vBox.getChildren().addAll(single, computerMode, debug, aiComponentMode);
         //bob modified
-        mainGroup.getChildren().addAll(bgImg, vBox, title);
+        mainGroup.getChildren().addAll(mainBgImg, vBox, title);
     }
 
 
     private void drawBoard(Group group) {
-        Rectangle rectangle = new Rectangle(3 * Tile_Size, 3 * Tile_Size, Color.LIGHTGRAY);
-        rectangle.setX(X_Side + 2 * Tile_Size);
-        rectangle.setY(Y_Side + 2 * Tile_Size);
-        group.getChildren().add(rectangle);
-        Line[] row = new Line[8];
-        Line[] column = new Line[8];
         for (int i = 0; i < 8; i++) {
-            row[i] = new Line();
-            column[i] = new Line();
-            row[i].setStartX(X_Side);
-            row[i].setStartY(Y_Side + i * Tile_Size);
-            row[i].setEndX(X_Side + 7 * Tile_Size);
-            row[i].setEndY(Y_Side + i * Tile_Size);
-            column[i].setStartX(X_Side + i * Tile_Size);
-            column[i].setStartY(Y_Side);
-            column[i].setEndX(X_Side + i * Tile_Size);
-            column[i].setEndY(Y_Side + 7 * Tile_Size);
-            group.getChildren().add(row[i]);
-            group.getChildren().add(column[i]);
+            Line row = new Line();
+            Line column = new Line();
+            row.setStartX(X_Side);
+            row.setStartY(Y_Side + i * Tile_Size);
+            row.setEndX(X_Side + 7 * Tile_Size);
+            row.setEndY(Y_Side + i * Tile_Size);
+            column.setStartX(X_Side + i * Tile_Size);
+            column.setStartY(Y_Side);
+            column.setEndX(X_Side + i * Tile_Size);
+            column.setEndY(Y_Side + 7 * Tile_Size);
+            group.getChildren().addAll(row, column);
+            if (i == 2 || i == 5) {
+                Line redRow = new Line();
+                Line redCol = new Line();
+                redRow.setStartX(X_Side + 2 * Tile_Size);
+                redRow.setStartY(Y_Side + i * Tile_Size);
+                redRow.setEndX(X_Side + 5 * Tile_Size);
+                redRow.setEndY(Y_Side + i * Tile_Size);
+                redCol.setStartX(X_Side + i * Tile_Size);
+                redCol.setStartY(Y_Side + 2 * Tile_Size);
+                redCol.setEndX(X_Side + i * Tile_Size);
+                redCol.setEndY(Y_Side + 5 * Tile_Size);
+                redRow.setStroke(Color.RED);
+                redCol.setStroke(Color.RED);
+                group.getChildren().addAll(redRow, redCol);
+            }
+
         }
     }
 
@@ -705,8 +715,11 @@ public class Viewer extends Application {
         Button diceRoll = new Button("Roll a dice");
         Button clear = new Button("Clear");
         Button changeView = new Button("Change to AI");
+        Button changeAi = new Button("Change AI");
+        Button changeAiBack = new Button("Change to another AI");
         Button newGame = new Button("New Game");
-        Button switchBack = new Button("Go back to another player");
+        Button newGameAi = new Button("New Game");
+        Button switchBack = new Button("Go back to player");
         Button newMove = new Button("New Turn");
 
         diceRoll.setOnAction(e -> {
@@ -738,7 +751,7 @@ public class Viewer extends Application {
                 stage.setScene(aiBoardScene);
                 if (!dicesAI.isEmpty()) {
                     aiBoardString += generateMove(aiBoardString, dicesAI);
-                    makePlacement(aiBoardString, true);
+                    makePlacement(aiBoardString, true, pieces);
                     if (diceRollTimes == 7) {
                         calculateScoreAiMode(rootAIMode);
                     }
@@ -751,14 +764,31 @@ public class Viewer extends Application {
             aiMode(stage);
         });
 
+        newGameAi.setOnAction(e -> {
+            clearAll();
+            aiToAiMode(stage);
+        });
+
         switchBack.setOnAction(e -> {
             stage.setScene(aiModePlayerScene);
+        });
+
+        changeAi.setOnAction(e -> {
+            stage.setScene(aiComponentScene);
+        });
+
+        changeAiBack.setOnAction(e -> {
+            stage.setScene(aiBoardScene);
+        });
+
+        newMove.setOnAction(e -> {
+            playMoveAi();
         });
 
         HBox buttonBox = new HBox();
         buttonBox.setLayoutX(40);
         buttonBox.setLayoutY(40);
-        buttonBox.setSpacing(10);
+        buttonBox.setSpacing(13);
 
         // play with computer
         if (group == rootAIMode) {
@@ -766,11 +796,16 @@ public class Viewer extends Application {
             controlsAiP.getChildren().add(buttonBox);
             switchBack.setLayoutX(40);
             switchBack.setLayoutY(40);
-            if (isGameMode) {
-                controlsAiA.getChildren().add(switchBack);
-            } else {
-                controlsAiA.getChildren().add(newMove);
-            }
+            controlsAiA.getChildren().add(switchBack);
+        }
+
+        // ai to ai
+        if (group == aiBoardGroup) {
+            buttonBox.getChildren().addAll(newMove, changeAi, newGameAi);
+            changeAiBack.setLayoutX(40);
+            changeAiBack.setLayoutY(40);
+            controlsAi.getChildren().add(buttonBox);
+            controlsAiComponent.getChildren().add(changeAiBack);
         }
 
         // debug or single game mode
@@ -783,14 +818,14 @@ public class Viewer extends Application {
             Button button = new Button("Refresh");
             Button placeTiles = new Button("Place tiles");
             button.setOnAction(e -> {
-                makePlacement(textField.getText(), false);
+                makePlacement(textField.getText(), false, pieces);
                 textField.clear();
             });
             placeTiles.setOnAction(e -> {
-                makePlacement(textField.getText(), false);
+                makePlacement(textField.getText(), false, pieces);
             });
             hb.getChildren().addAll(label1, textField, button, placeTiles);
-            hb.setSpacing(10);
+            hb.setSpacing(20);
             hb.setLayoutX(130);
             hb.setLayoutY(VIEWER_HEIGHT - 50);
             if (isGameMode) {
@@ -803,6 +838,51 @@ public class Viewer extends Application {
         }
     }
 
+    private void initSTiles() {
+        sTilesAi.clear();
+        sTileAiComponent.clear();
+        for (int i = 0; i < 6; i++) {
+            sTilesAi.add("S" + i);
+            sTileAiComponent.add("S" + i);
+        }
+    }
+
+    /* This method is for ai to ai mode */
+    private void playMoveAi() {
+        diceRollTimes++;
+        if (diceRollTimes > 1 && diceRollTimes < 8) {
+            aiBoardGroup.getChildren().remove(turnInfo);
+            aiComponent.getChildren().remove(turnInfoAi);
+        }
+        if (diceRollTimes < 8) {
+            dices = dicesAI = generateDiceRoll();
+            boardString += generateMove(boardString, dices);
+            aiBoardString += generateMove(aiBoardString, dicesAI);
+            makePlacement(boardString, false, pieces);
+            makePlacement(aiBoardString, false, aiPieces);
+            turnInfo = new Text(X_Side + 2 * Tile_Size, 60, "Turn: " + diceRollTimes);
+            turnInfoAi = new Text(X_Side + 2 * Tile_Size, 60, "Turn: " + diceRollTimes);
+            turnInfo.setFont(Font.font("Verdana", 20));
+            turnInfoAi.setFont(Font.font("Verdana", 20));
+            aiBoardGroup.getChildren().add(turnInfo);
+            aiComponent.getChildren().add(turnInfoAi);
+        }
+        if (diceRollTimes >= 7) {
+            if (resultInfo == null && resultInfoAi == null) {
+                int score1 = getAdvancedScore(boardString);
+                int score2 = getAdvancedScore(aiBoardString);
+                resultInfo = new Text(X_Side + 4 * Tile_Size, Y_Side / 2f,
+                        "AI1 score: " + score1 + "  " + "AI2 score: " + score2);
+                resultInfo.setFont(Font.font("Verdana", 27));
+                resultInfoAi = new Text(X_Side + 4 * Tile_Size, Y_Side / 2f,
+                        "AI1 score: " + score1 + "  " + "AI2 score: " + score2);
+                resultInfoAi.setFont(Font.font("Verdana", 27));
+                aiBoardGroup.getChildren().add(resultInfo);
+                aiComponent.getChildren().add(resultInfoAi);
+            }
+        }
+    }
+
     /* Init method for the aiMode */
     private void aiMode(Stage stage) {
         stage.setScene(aiModePlayerScene);
@@ -811,13 +891,6 @@ public class Viewer extends Application {
         aiBoardScene.getStylesheets().add(this.getClass().getResource("GameBoardBG.css").toExternalForm());
 
         aiModePlayerScene.setOnKeyPressed(e -> {
-            //bob
-            if (e.getCode() == KeyCode.F) {
-                if (!operating_piece.isFlipped)
-                    operating_piece.flipped();
-                else
-                    operating_piece.flippedBack();
-            }
             if (e.getCode() == KeyCode.ESCAPE) {
                 clearAll();
                 stage.setScene(mainScene);
@@ -833,10 +906,10 @@ public class Viewer extends Application {
 
         makeControls(rootAIMode, true, stage);
         rootAIMode.getChildren().clear();
-        rootAIMode.getChildren().addAll(boardAiModeA, bgImg, controlsAiP, generatingPieces, placedPieces);
+        rootAIMode.getChildren().addAll(boardBGImg, boardAiModeP, controlsAiP, generatingPieces, placedPieces);
 
         aiBoardGroup.getChildren().clear();
-        aiBoardGroup.getChildren().addAll(boardAiModeP, ai_group_bgImg, controlsAiA, pieces);
+        aiBoardGroup.getChildren().addAll(aiGroupImg, boardAiModeA, controlsAiA, pieces);
     }
 
     /* Init method for the single game mode or debug mode */
@@ -847,13 +920,7 @@ public class Viewer extends Application {
         singleModeScene.getStylesheets().add(this.getClass().getResource("GameBoardBG.css").toExternalForm());
 
         singleModeScene.setOnKeyPressed(e -> {
-            //bob
-            if (e.getCode() == KeyCode.F) {
-                if (!operating_piece.isFlipped)
-                    operating_piece.flipped();
-                else
-                    operating_piece.flippedBack();
-            } else if (e.getCode() == KeyCode.ESCAPE) {
+           if (e.getCode() == KeyCode.ESCAPE) {
                 clearAll();
                 stage.setScene(mainScene);
             }
@@ -862,12 +929,13 @@ public class Viewer extends Application {
 
         makeControls(root, isGameMode, stage);
         root.getChildren().clear();
-        //bob modified
-        root.getChildren().addAll(boardSingleMode, bgImg, controls, pieces, generatingPieces, placedPieces);
+        root.getChildren().addAll(boardBGImg, boardSingleMode, controls, pieces, generatingPieces, placedPieces);
     }
 
     private void aiToAiMode(Stage stage) {
         stage.setScene(aiBoardScene);
+        aiBoardScene.getStylesheets().add(this.getClass().getResource("GameBoardBG.css").toExternalForm());
+        aiComponentScene.getStylesheets().add(this.getClass().getResource("GameBoardBG.css").toExternalForm());
 
         aiBoardScene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ESCAPE) {
@@ -882,6 +950,13 @@ public class Viewer extends Application {
                 stage.setScene(mainScene);
             }
         });
+        makeControls(aiBoardGroup, false, stage);
+        aiBoardGroup.getChildren().clear();
+        aiBoardGroup.getChildren().addAll(aiGroupImg, boardAiModeA, controlsAi, pieces);
+
+        aiComponent.getChildren().clear();
+        aiComponent.getChildren().addAll(aiComponentImg, boardAiComponent, controlsAiComponent, aiPieces);
+
     }
 
 

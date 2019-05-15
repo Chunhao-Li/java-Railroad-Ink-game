@@ -4,7 +4,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 import static org.junit.Assert.*;
-import  static comp1110.ass2.HelperMethod.*;
+import  static comp1110.ass2.RailroadInk.*;
 
 /**
  * Test errors: Errors are the edges of routes

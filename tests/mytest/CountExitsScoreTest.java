@@ -1,6 +1,6 @@
 package mytest;
 
-import  static comp1110.ass2.HelperMethod.*;
+import  static comp1110.ass2.RailroadInk.*;
 
 import org.junit.Rule;
 import org.junit.Test;

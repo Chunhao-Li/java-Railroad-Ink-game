@@ -7,7 +7,7 @@ import org.junit.rules.Timeout;
 import java.util.ArrayList;
 import java.util.List;
 
-import static comp1110.ass2.HelperMethod.getOrientations;
+import static comp1110.ass2.RailroadInk.*;
 import static org.junit.Assert.assertTrue;
 
 /**

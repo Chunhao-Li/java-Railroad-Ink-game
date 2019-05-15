@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.junit.rules.Timeout;
 
 import static org.junit.Assert.*;
-import static comp1110.ass2.HelperMethod.*;
+import static comp1110.ass2.RailroadInk.*;
 
 public class FindLongestRoadTest {
     @Rule
