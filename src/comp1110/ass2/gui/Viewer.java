@@ -62,15 +62,19 @@ public class Viewer extends Application {
     private final Group boardSingleMode = new Group();
     private final Group boardAiModeA = new Group();
     private final Group boardAiModeP = new Group();
+    private final Group boardAiComponent = new Group();
     private final Group root = new Group();
     private final Group controls = new Group();
-    private final Group controlsAiP = new Group();
-    private final Group controlsAiA = new Group();
+    private final Group controlsAiP = new Group();  // Player to ai mode: player's control
+    private final Group controlsAiA = new Group();  // Player to ai mode: ai's control or ai to ai mode: first ai
+    private final Group controlsAiComponent = new Group();
     private final Group pieces = new Group();
     private final Group placedPieces = new Group();
     private final Group generatingPieces = new Group();
     private final Group rootAIMode = new Group();
     private final Group aiBoardGroup = new Group();
+    private final Group aiComponent = new Group();
+    private Scene aiComponentScene = new Scene(aiComponent, VIEWER_WIDTH, VIEWER_HEIGHT);
     private Scene aiBoardScene = new Scene(aiBoardGroup, VIEWER_WIDTH, VIEWER_HEIGHT);
     private Scene mainScene = new Scene(mainGroup, VIEWER_WIDTH, VIEWER_HEIGHT);
     private Scene singleModeScene = new Scene(root, VIEWER_WIDTH, VIEWER_HEIGHT);
@@ -87,6 +91,8 @@ public class Viewer extends Application {
     private Text resultInfo = null;
     private Text turnInfo = null;
     private Text turnInfoAi = null;
+    private List<String> sTilesAi = new ArrayList<>();
+    private List<String> sTileAiComponent = new ArrayList<>();
 
 
     /**
@@ -588,6 +594,11 @@ public class Viewer extends Application {
         computerMode.setOnAction(e -> {
             aiMode(primaryStage);
         });
+
+        Button aiComponentMode = new Button("AI to AI");
+        aiComponentMode.setOnAction(e -> {
+            aiToAiMode(primaryStage);
+        });
         vBox.getChildren().addAll(single, computerMode, debug);
         mainGroup.getChildren().addAll(vBox, title);
     }
@@ -630,7 +641,8 @@ public class Viewer extends Application {
         Button clear = new Button("Clear");
         Button changeView = new Button("Change to AI");
         Button newGame = new Button("New Game");
-        Button switchBack = new Button("Go back to player");
+        Button switchBack = new Button("Go back to another player");
+        Button newMove = new Button("New Turn");
 
         diceRoll.setOnAction(e -> {
             if (diceRollTimes == 7) {
@@ -689,7 +701,11 @@ public class Viewer extends Application {
             controlsAiP.getChildren().add(buttonBox);
             switchBack.setLayoutX(40);
             switchBack.setLayoutY(40);
-            controlsAiA.getChildren().add(switchBack);
+            if (isGameMode) {
+                controlsAiA.getChildren().add(switchBack);
+            } else {
+                controlsAiA.getChildren().add(newMove);
+            }
         }
 
         // debug or single game mode
@@ -765,6 +781,24 @@ public class Viewer extends Application {
         root.getChildren().addAll(boardSingleMode, controls, generatingPieces, placedPieces, pieces);
     }
 
+    private void aiToAiMode(Stage stage) {
+        stage.setScene(aiBoardScene);
+
+        aiBoardScene.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ESCAPE) {
+                clearAll();
+                stage.setScene(mainScene);
+            }
+        });
+
+        aiComponentScene.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ESCAPE) {
+                clearAll();
+                stage.setScene(mainScene);
+            }
+        });
+    }
+
 
 
     @Override
@@ -778,6 +812,9 @@ public class Viewer extends Application {
 
         drawBoard(boardAiModeA);
         drawExits(boardAiModeA);
+
+        drawBoard(boardAiComponent);
+        drawExits(boardAiComponent);
 
         mainSceneSetting(primaryStage);
         primaryStage.show();
