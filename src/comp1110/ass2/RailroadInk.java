@@ -85,23 +85,23 @@ public class RailroadInk {
         if (tilePlacementStringA.length() < 5 || tilePlacementStringB.length() < 5) {return false;}
         char[] a = tilePlacementStringA.toCharArray();
         char[] b = tilePlacementStringB.toCharArray();
-        if (Math.abs(a[2] - b[2]) > 1 || Math.abs(a[3] - b[3]) > 1) {return false;}
-        if (a[2] == b[2] && a[3] == b[3]) {return false;}
-        if (Math.abs(a[2] - b[2]) == 1 && Math.abs(a[3] - b[3]) == 1) {return false;}
+        if (Math.abs(a[2] - b[2]) > 1 || Math.abs(a[3] - b[3]) > 1) {return false;}// not connected
+        if (a[2] == b[2] && a[3] == b[3]) {return false;}//exactly copy paste in the same box
+        if (Math.abs(a[2] - b[2]) == 1 && Math.abs(a[3] - b[3]) == 1) {return false;}// diagonal position
         char[] aShape = getShape(a, a[4]).toCharArray();
         char[] bShape = getShape(b, b[4]).toCharArray();
 
         if (a[2] > b[2]) {
-            if (!(aShape[0] == bShape[2] && aShape[0] != '#')) {return false;}
+            if (!(aShape[0] == bShape[2] && aShape[0] != '#')) {return false;} // if up!=down and up is not empty
         }
         if (a[2] < b[2]) {
-            if (!(aShape[2] == bShape[0] && aShape[2] != '#')) {return false;}
+            if (!(aShape[2] == bShape[0] && aShape[2] != '#')) {return false;}//reverse previous
         }
         if (a[3] > b[3]) {
-            if (!(aShape[1] == bShape[3] && aShape[1] != '#')) {return false;}
+            if (!(aShape[1] == bShape[3] && aShape[1] != '#')) {return false;}//if left!=right and left is not empty
         }
         if (a[3] < b[3]) {
-            if (!(aShape[3] == bShape[1] && aShape[3] != '#')) {return false;}
+            if (!(aShape[3] == bShape[1] && aShape[3] != '#')) {return false;}// reverse
         }
         return true;
 
@@ -130,10 +130,10 @@ public class RailroadInk {
         if (!isBoardStringWellFormed(boardString)) {
             return false;
         }
-        String[] tiles = new String[boardString.length() / 5];
+        String[] tiles = new String[boardString.length() / 5];// 5 letters in a tile representation.
         String[] placed = new String[tiles.length];
         for (int i = 0; i+5 <= boardString.length() ; i += 5) {
-            tiles[i/5] = boardString.substring(i, i+5);
+            tiles[i/5] = boardString.substring(i, i+5);// representation of  i/5 th tile
             placed[i/5] = i == 0 ? boardString.substring(i, i+5) : "" ;
         }
 

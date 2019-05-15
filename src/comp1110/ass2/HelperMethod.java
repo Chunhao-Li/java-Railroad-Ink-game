@@ -51,8 +51,9 @@ public class HelperMethod {
         char[] a = tilePlacement.toCharArray();
         char[] aShape = getShape(a, a[4]).toCharArray();
 
-        if ((a[2] == 'A' || a[2] == 'G') && (a[3] == '1' || a[3] == '3' || a[3] == '5')) {
-            if (aShape[a[2] == 'A' ? 0 : 2] != '#') {
+        if ((a[2] == 'A' || a[2] == 'G') && (a[3] == '1' || a[3] == '3' || a[3] == '5')) { // possible exits
+            if (aShape[a[2] == 'A' ? 0 : 2] != '#') {  // if tile at the fst row , up is not be vacant / If last, down
+                //is not be vacant.
                 return (!isExitConnected(tilePlacement));
             }
 
@@ -76,15 +77,15 @@ public class HelperMethod {
         char[] a = tilePlacement.toCharArray();
         char[] aShape = getShape(a, a[4]).toCharArray();
 
-        if ((a[2] == 'A' || a[2] == 'G') && (a[3] == '1' || a[3] == '3' || a[3] == '5')) {
-            if ((a[3] == '1' || a[3] =='5') && aShape[a[2] == 'A' ? 0 : 2] == 'h')
+        if ((a[2] == 'A' || a[2] == 'G') && (a[3] == '1' || a[3] == '3' || a[3] == '5')) {// possible exits
+            if ((a[3] == '1' || a[3] =='5') && aShape[a[2] == 'A' ? 0 : 2] == 'h') // if fst or last column matches highway
             {return true;}
             else
-                {return (a[3] == '3' && aShape[a[2] == 'A' ? 0 : 2] == 'r');}
+                {return (a[3] == '3' && aShape[a[2] == 'A' ? 0 : 2] == 'r');} //matches railway
         }
         else
-            if ((a[2] == 'B' || a[2] == 'D' || a[2] == 'F') && (a[3] == '0' || a[3] == '6')) {
-            if ((a[2] == 'B' || a[2] == 'F') && aShape[a[3] == '0' ? 1 : 3] == 'r')
+            if ((a[2] == 'B' || a[2] == 'D' || a[2] == 'F') && (a[3] == '0' || a[3] == '6')) { // else possible exit
+            if ((a[2] == 'B' || a[2] == 'F') && aShape[a[3] == '0' ? 1 : 3] == 'r') // last row<-> down is exit position
             {return true;}
             else
                 {return (a[2] == 'D' && aShape[a[3] == '0' ? 1 : 3] == 'h');}
@@ -102,12 +103,12 @@ public class HelperMethod {
      */
     private static ArrayList<String> replaceB2(String B2) {
         ArrayList<String> replace = new ArrayList<>();
-         if (getShape(B2.toCharArray(), B2.charAt(4)).charAt(0) == 'h'){
-             replace.add("A1"+B2.substring(2,4)+"1");
-             replace.add("A4"+B2.substring(2,4)+"0");
+         if (getShape(B2.toCharArray(), B2.charAt(4)).charAt(0) == 'h'){ // top is highway
+             replace.add("A1"+B2.substring(2,4)+"1");// rotate A1
+             replace.add("A4"+B2.substring(2,4)+"0");// change it to A1 and A4
          }else {
              replace.add("A1"+B2.substring(2,4)+"0");
-             replace.add("A4"+B2.substring(2,4)+"1");
+             replace.add("A4"+B2.substring(2,4)+"1");// rotate A4
          }
         return replace;
     }
@@ -201,7 +202,7 @@ public class HelperMethod {
      private static ArrayList<String> getNeighbours(String tile, ArrayList<String> tiles) {
         ArrayList<String> result = new ArrayList<>();
          for (int i = 0; i < tiles.size(); i++) {
-             if (areConnectedNeighbours(tile, tiles.get(i))){
+             if (areConnectedNeighbours(tile, tiles.get(i))){ // print all connected neighbours
                  result.add(tiles.get(i));
              }
          }
@@ -230,42 +231,42 @@ public class HelperMethod {
      public static int countErrorsScore(String boardString) {
          String[] tilePlacements = new String[ boardString.length()/5];
          for (int i = 0; i+5 <= boardString.length(); i += 5) {
-             tilePlacements[i/5] = (boardString.substring(i, i+5));
+             tilePlacements[i/5] = (boardString.substring(i, i+5));// separate each tile
          }
         String[] tiles = new String[tilePlacements.length];
         for (int i = 0; i < tiles.length; i++) {
-            tiles[i] = getShape(tilePlacements[i].toCharArray(), tilePlacements[i].charAt(4))
-                    + tilePlacements[i].substring(2, 4);
+            tiles[i] = getShape(tilePlacements[i].toCharArray(), tilePlacements[i].charAt(4))//e.g R#R#
+                    + tilePlacements[i].substring(2, 4);// row,column
         }
 
-        // tiles connected to the edge of the board
+        // change tiles connected to the edge of the board to # ,and calculate no. of # later
         for (int i = 0; i < tiles.length; i++) {
             String t = tiles[i];
-            if (t.charAt(4) == 'A' && t.charAt(0) != '#') {
+            if (t.charAt(4) == 'A' && t.charAt(0) != '#') { //row1 and up not vacant
                 t = "#" + t.substring(1);
-            }
 
-            if (t.charAt(4) == 'G' && t.charAt(2) != '#') {
-                t = t.substring(0, 2) + "#" +t.substring(3);
-            }
+                if (t.charAt(4) == 'G' && t.charAt(2) != '#') {
+                    t = t.substring(0, 2) + "#" + t.substring(3);
+                }
 
-            if (t.charAt(5) == '0' && t.charAt(1) != '#') {
-                t = t.charAt(0) + "#" + t.substring(2);
-            }
+                if (t.charAt(5) == '0' && t.charAt(1) != '#') {
+                    t = t.charAt(0) + "#" + t.substring(2);
+                }
 
-            if (t.charAt(5) == '6' && t.charAt(3) != '#') {
-                t = t.substring(0, 3) + "#" + t.substring(4);
+                if (t.charAt(5) == '6' && t.charAt(3) != '#') {
+                    t = t.substring(0, 3) + "#" + t.substring(4);
+                }
+                tiles[i] = t;
             }
-            tiles[i] = t;
         }
 
-        // tiles connected with neighbours
+        //  change tiles connected with neighbours to #
         for (int i = 0; i < tiles.length; i++) {
             for (int j = tiles.length-1; j > i; j--) {
                 if (areConnectedNeighbours(tilePlacements[i], tilePlacements[j])) {
                     String tileI = tiles[i];
                     String tileJ = tiles[j];
-                    if (tileI.charAt(4) == tileJ.charAt(4)) {
+                    if (tileI.charAt(4) == tileJ.charAt(4)) { // change the row
                         if (tileI.charAt(5) < tileJ.charAt(5)) {
                             tileI = tileI.substring(0, 3) + "#" + tileI.substring(4);
                             tileJ = tileJ.charAt(0) + "#" + tileJ.substring(2);
@@ -275,7 +276,7 @@ public class HelperMethod {
                         }
                     }
 
-                    if (tileI.charAt(5) == tileJ.charAt(5)) {
+                    if (tileI.charAt(5) == tileJ.charAt(5)) { // change the column
                         if (tileI.charAt(4) < tileJ.charAt(4)) {
                             tileI = tileI.substring(0, 2) + "#" +tileI.substring(3);
                             tileJ = "#" + tileJ.substring(1);
@@ -295,7 +296,7 @@ public class HelperMethod {
         }
         int errors = 0;
         for (char c : sb.toString().toCharArray()) {
-            if (c != '#') {errors++;}
+            if (c != '#') {errors++;} // tiles not changed to # are errors
         }
         return -errors;
     }

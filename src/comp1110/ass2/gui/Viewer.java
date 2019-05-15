@@ -2,6 +2,8 @@ package comp1110.ass2.gui;
 
 import static comp1110.ass2.HelperMethod.*;
 import static comp1110.ass2.RailroadInk.*;
+
+import comp1110.ass2.HelperMethod;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -14,6 +16,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
@@ -29,6 +33,7 @@ import java.util.Set;
 /**
  * This is a JavaFX application that gives a graphical user interface (GUI) to the Railroad Ink game.
  * <p>
+ *
  * @author Frederick Li, Mingchao Sima (makePlacement and drawExits)
  * The game feature:
  * - It has three modes (single mode), (ai mode), (debug mode) which correspond to the button
@@ -58,6 +63,11 @@ public class Viewer extends Application {
     private static final double Tile_Size = 80;
     private static final int X_Side = 232;   //(VIEWER_WIDTH - Tile_Size * 7)/2
     private static final int Y_Side = 104;   //(VIEWER_HEIGHT - Tile_Size * 7)/2
+    //bob
+    final private static MediaPlayer bgMusic
+            = new MediaPlayer(new Media(Viewer.class.getResource(URI_BASE + "BGM.mp3").toString()));
+    final private static int MUSIC_MODE = MediaPlayer.INDEFINITE;   //music mode
+
     private final Group mainGroup = new Group();
     private final Group boardSingleMode = new Group();
     private final Group boardAiModeA = new Group();
@@ -87,12 +97,16 @@ public class Viewer extends Application {
     private Text resultInfo = null;
     private Text turnInfo = null;
     private Text turnInfoAi = null;
-
+    //bob
+    private ImageView bgImg;
+    private ImageView ai_group_bgImg;
+    private static DraggablePiece operating_piece = null;
 
     /**
      * Draw a placement in the window, removing any previously drawn one
-     * @author Mingchao Sima, Frederick Li
+     *
      * @param placement A valid placement string
+     * @author Mingchao Sima, Frederick Li
      */
     public void makePlacement(String placement, boolean isAIMode) {
         // FIXME Task 4: implement the simple placement viewer
@@ -121,8 +135,9 @@ public class Viewer extends Application {
 
     /**
      * This method is help to draw 12 exits
-     * @author Mingchao Sima
+     *
      * @param group a board Group which will add these exits
+     * @author Mingchao Sima
      */
     private void drawExits(Group group) {
         for (int col = 0; col < 7; col++) {
@@ -189,8 +204,8 @@ public class Viewer extends Application {
             group.getChildren().remove(turnInfo);
         }
         turnInfo = group == rootAIMode ?
-                new Text(X_Side+2*Tile_Size, 60,"Turn: " + diceRollTimes) :
-                new Text(X_Side+Tile_Size, 60,"Turn: " + diceRollTimes);
+                new Text(X_Side + 2 * Tile_Size, 60, "Turn: " + diceRollTimes) :
+                new Text(X_Side + Tile_Size, 60, "Turn: " + diceRollTimes);
 
         turnInfo.setFont(Font.font("Verdana", 20));
         group.getChildren().add(turnInfo);
@@ -199,14 +214,14 @@ public class Viewer extends Application {
         dices = generateDiceRoll();
         if (group == rootAIMode) {
             aiBoardGroup.getChildren().remove(turnInfoAi);
-            turnInfoAi = new Text(X_Side+Tile_Size, 60,"Turn: " + diceRollTimes);
+            turnInfoAi = new Text(X_Side + Tile_Size, 60, "Turn: " + diceRollTimes);
             turnInfoAi.setFont(Font.font("Verdana", 20));
             aiBoardGroup.getChildren().add(turnInfoAi);
             dicesAI = dices;
         }
         String[] eachDice = new String[4];
-        for (int i = 0; i+2 <= dices.length(); i+=2) {
-            eachDice[i/2] = dices.substring(i, i+2);
+        for (int i = 0; i + 2 <= dices.length(); i += 2) {
+            eachDice[i / 2] = dices.substring(i, i + 2);
         }
         for (int i = 0; i < eachDice.length; i++) {
             String dice = eachDice[i];
@@ -215,8 +230,8 @@ public class Viewer extends Application {
             DraggablePiece draggablePiece = new DraggablePiece(tileImage, dice);
             draggablePiece.setFitHeight(Tile_Size);
             draggablePiece.setFitWidth(Tile_Size);
-            draggablePiece.homeX = X_Side/3f;
-            draggablePiece.homeY = Y_Side + 20 + 2*i * Tile_Size;
+            draggablePiece.homeX = X_Side / 3f;
+            draggablePiece.homeY = Y_Side + 20 + 2 * i * Tile_Size;
             draggablePiece.setLayoutX(draggablePiece.homeX);
             draggablePiece.setLayoutY(draggablePiece.homeY);
             generatingPieces.getChildren().add(draggablePiece);
@@ -269,16 +284,21 @@ public class Viewer extends Application {
         private void snapToGrid() {
             double currX = this.getLayoutX();
             double currY = this.getLayoutY();
-            double newX = Math.round((currX-X_Side) / Tile_Size) * Tile_Size + X_Side;
-            double newY = Math.round((currY-Y_Side) / Tile_Size) * Tile_Size + Y_Side;
+            double newX = Math.round((currX - X_Side) / Tile_Size) * Tile_Size + X_Side;
+            double newY = Math.round((currY - Y_Side) / Tile_Size) * Tile_Size + Y_Side;
             this.setLayoutX(newX);
             this.setLayoutY(newY);
             this.setOpacity(1.0);
         }
 
         private void rotate() {
-            rotation = (rotation+1) % 4;
-            this.setRotate(rotation*90);
+            rotation = rotation + 1;
+
+            //bob: safe check for upper bound for intensive or long time operation.
+            if (rotation == 8) {
+                rotation = 0;
+            }
+            this.setRotate(rotation * 90);
         }
 
         private void flipped() {
@@ -300,15 +320,15 @@ public class Viewer extends Application {
         }
 
         boolean isOnBoard() {
-            return this.getLayoutX() > X_Side-Tile_Size && this.getLayoutX() < VIEWER_WIDTH-X_Side
-                && this.getLayoutY() > Y_Side-Tile_Size && this.getLayoutY() < VIEWER_HEIGHT-Y_Side;
+            return this.getLayoutX() > X_Side - Tile_Size && this.getLayoutX() < VIEWER_WIDTH - X_Side
+                    && this.getLayoutY() > Y_Side - Tile_Size && this.getLayoutY() < VIEWER_HEIGHT - Y_Side;
         }
 
         void setPosition() {
             Image tileImage = new Image(Viewer.class.getResource(
                     URI_BASE + name + ".png").toString());
             ImageView placedPiece = new ImageView(tileImage);
-            placedPiece.setRotate(rotation*90);
+            placedPiece.setRotate(rotation * 90);
             if (isFlipped) {
                 placedPiece.setScaleX(-1);
             }
@@ -323,23 +343,24 @@ public class Viewer extends Application {
                 sTilesNotPlaced.remove(this);
             } else {
                 int i = dices.indexOf(name);
-                dices = dices.substring(0, i) + dices.substring(i+2, dices.length());
+                dices = dices.substring(0, i) + dices.substring(i + 2, dices.length());
             }
         }
 
         boolean isValid() {
             double currX = this.getLayoutX();
             double currY = this.getLayoutY();
-            char col = (char) ( Math.round((currX-X_Side) / Tile_Size) + '0') ;
-            char row = (char) (Math.round((currY-Y_Side) / Tile_Size) + 'A') ;
-            String orientation = isFlipped ? String.valueOf(rotation+4) : String.valueOf(rotation);
+            char col = (char) (Math.round((currX - X_Side) / Tile_Size) + '0');
+            char row = (char) (Math.round((currY - Y_Side) / Tile_Size) + 'A');
+            String orientation = isFlipped ? String.valueOf(rotation + 4) : String.valueOf(rotation);
             String piecePlacement = name + String.valueOf(row) + String.valueOf(col) + orientation;
-            if (name.charAt(0) == 'S' ) {
+            if (name.charAt(0) == 'S') {
                 if (sTileTotal >= 3) {
-                Alert alert = new Alert(Alert.AlertType.WARNING,
-                        "You have used 3 special tiles in this game!");
-                alert.showAndWait();
-                    return false;}
+                    Alert alert = new Alert(Alert.AlertType.WARNING,
+                            "You have used 3 special tiles in this game!");
+                    alert.showAndWait();
+                    return false;
+                }
                 if (sTilePerTurn == 1) {
                     Alert alert = new Alert(Alert.AlertType.WARNING,
                             "You can only use 1 special tile each turn!");
@@ -347,9 +368,9 @@ public class Viewer extends Application {
                     return false;
                 }
             }
-            if (isValidPlacementSequence(boardString+piecePlacement)
-                && areNeighboursValid(boardString, piecePlacement)
-           ) {
+            if (isValidPlacementSequence(boardString + piecePlacement)
+                    && areNeighboursValid(boardString, piecePlacement)
+            ) {
                 boardString += piecePlacement;
                 return true;
             } else {
@@ -360,14 +381,15 @@ public class Viewer extends Application {
 
     /**
      * This method is to check whether exists valid moves
+     *
      * @param sIncluded including special tiles or not
      * @return boolean
      */
     private boolean hasValidPlacement(boolean sIncluded) {
         List<String> unUsedGrids = getUnusedGrids(boardString);
         Set<String> tiles = new HashSet<>();
-        for (int i = 0; i+2 <= dices.length(); i+=2) {
-            tiles.add(dices.substring(i, i+2));
+        for (int i = 0; i + 2 <= dices.length(); i += 2) {
+            tiles.add(dices.substring(i, i + 2));
         }
 
         if (sIncluded && sTileTotal < 3 && sTilePerTurn == 0) {
@@ -376,13 +398,13 @@ public class Viewer extends Application {
             }
         }
 
-        for (String tile: tiles) {
+        for (String tile : tiles) {
             List<Character> orientations = getOrientations(tile);
             for (String grid : unUsedGrids) {
                 for (char o : orientations) {
                     String placement = tile + grid + String.valueOf(o);
-                    if (isValidPlacementSequence(boardString+placement) &&
-                        areNeighboursValid(boardString, placement)) {
+                    if (isValidPlacementSequence(boardString + placement) &&
+                            areNeighboursValid(boardString, placement)) {
                         return true;
                     }
                 }
@@ -394,10 +416,10 @@ public class Viewer extends Application {
 
     /**
      * This method is used to control DraggablePiece :
-     *      - Scroll on the tile: rotates 90 degrees clockwise
-     *      - Double click: flip the tile (if not flipped)
-     *      - Triple click: flip back (if flipped)
-     *      - Drag and release the tile on the board to place it
+     * - Scroll on the tile: rotates 90 degrees clockwise
+     * - Double click: flip the tile (if not flipped)
+     * - Triple click: flip back (if flipped)
+     * - Drag and release the tile on the board to place it
      */
     private void handlePiece(Group group) {
         for (Node node : generatingPieces.getChildren()) {
@@ -418,6 +440,8 @@ public class Viewer extends Application {
             });
 
             piece.setOnMousePressed(e -> {
+                //bob
+                operating_piece = piece;
                 piece.mouseX = e.getSceneX();
                 piece.mouseY = e.getSceneY();
             });
@@ -432,6 +456,8 @@ public class Viewer extends Application {
             });
 
             piece.setOnMouseReleased(e -> {
+                //bob
+                operating_piece = null;
                 if (!piece.isOnBoard()) {
                     piece.snapToHome();
                 } else if (piece.isValid()) {
@@ -443,7 +469,7 @@ public class Viewer extends Application {
                 }
 
                 // In the last turn, check whether exits valid moves
-                if (diceRollTimes == 7 ) {
+                if (diceRollTimes == 7) {
                     if (!hasValidPlacement(true)) {
                         Alert alert = new Alert(Alert.AlertType.INFORMATION,
                                 "No more moves, press OK to get the score", ButtonType.OK);
@@ -452,7 +478,7 @@ public class Viewer extends Application {
                             if (group == root) {
                                 int score = getAdvancedScore(boardString);
                                 resultInfo = new Text(VIEWER_WIDTH / 2, 60,
-                                                         "Total Score: " + score);
+                                        "Total Score: " + score);
                                 resultInfo.setFont(Font.font("Verdana", 20));
                                 group.getChildren().add(resultInfo);
                             } else {
@@ -471,7 +497,7 @@ public class Viewer extends Application {
                             if (group == root) {
                                 int score = getAdvancedScore(boardString);
                                 resultInfo = new Text(VIEWER_WIDTH / 2, (double) Y_Side / 2,
-                                                            "Advanced Score: " + score);
+                                        "Advanced Score: " + score);
                                 resultInfo.setFont(Font.font("Verdana", 20));
                                 group.getChildren().add(resultInfo);
                             } else {
@@ -507,7 +533,7 @@ public class Viewer extends Application {
         } else {
             winner += "AI!";
         }
-        resultInfo = new Text(X_Side + 2*Tile_Size, Y_Side / 3f, winner);
+        resultInfo = new Text(X_Side + 2 * Tile_Size, Y_Side / 3f, winner);
         resultInfo.setFont(Font.font("Verdana", 30));
         Label scoreP, scoreA;
         if (!winner.equals("Tie")) {
@@ -519,8 +545,8 @@ public class Viewer extends Application {
         }
         VBox scores = new VBox(scoreP, scoreA);
         scores.setSpacing(10);
-        scores.setLayoutX(X_Side + 5*Tile_Size);
-        scores.setLayoutY(Y_Side/3f);
+        scores.setLayoutX(X_Side + 5 * Tile_Size);
+        scores.setLayoutY(Y_Side / 3f);
         group.getChildren().addAll(scores, resultInfo);
         generatingPieces.getChildren().clear();
 
@@ -541,37 +567,53 @@ public class Viewer extends Application {
         pieces.getChildren().clear();
 
         rootAIMode.getChildren().clear();
-        rootAIMode.getChildren().addAll(boardAiModeA, controlsAiP , generatingPieces, placedPieces);
+        rootAIMode.getChildren().addAll(boardAiModeA, controlsAiP, generatingPieces, placedPieces);
 
         aiBoardGroup.getChildren().clear();
-        aiBoardGroup.getChildren().addAll(boardAiModeP, controlsAiA, pieces);
+        aiBoardGroup.getChildren().addAll(boardAiModeP, ai_group_bgImg, controlsAiA, pieces);
 
         root.getChildren().clear();
-        root.getChildren().addAll(boardSingleMode, controls, generatingPieces, placedPieces, pieces);
+
+        //bob modified
+        root.getChildren().addAll(boardSingleMode, mainGroup, controls, generatingPieces, placedPieces, pieces);
     }
 
 
     /**
      * This method controls the main scene where user can switch to different modes
      * modes:
-     *      - single mode ("single game")
-     *      - AI mode ("play with computer")
-     *      - Debug mode ("debug mode")
+     * - single mode ("single game")
+     * - AI mode ("play with computer")
+     * - Debug mode ("debug mode")
+     *
      * @param primaryStage the main stage of the program
      */
     private void mainSceneSetting(Stage primaryStage) {
+
         primaryStage.setScene(mainScene);
+        //bob
+        mainScene.getStylesheets().add(this.getClass().getResource("GameBoardBG.css").toExternalForm());
         mainScene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.Q) {
                 primaryStage.close();
             }
         });
+//        mainScene.setOnKeyPressed(e -> {
+//            System.out.println("bob = " + "mainScene");
+//            if (e.getCode() == KeyCode.F) {
+//                if (!operating_piece.isFlipped)
+//                    operating_piece.flipped();
+//                else
+//                    operating_piece.flippedBack();
+//            }
+//        });
+
         VBox vBox = new VBox();
         vBox.setAlignment(Pos.CENTER_LEFT);
         vBox.setLayoutX(VIEWER_WIDTH / 2 - Tile_Size);
         vBox.setLayoutY(VIEWER_HEIGHT / 2 - Tile_Size);
         vBox.setSpacing(30);
-        Text title = new Text(VIEWER_WIDTH/3, X_Side ,"Railroad Ink");
+        Text title = new Text(VIEWER_WIDTH / 3, X_Side, "Railroad Ink");
         title.setFont(Font.font("Verdana", 50));
 
         Button single = new Button("Single game");
@@ -588,20 +630,37 @@ public class Viewer extends Application {
         computerMode.setOnAction(e -> {
             aiMode(primaryStage);
         });
+
+        //bob
+        bgMusic.setCycleCount(Viewer.MUSIC_MODE);
+        bgMusic.play(); // play music
+
+        bgImg = new ImageView();
+        bgImg.setImage(new Image(getClass().getResource(URI_BASE + "bg.jpg").toString()));
+        bgImg.setFitWidth(VIEWER_WIDTH);
+        bgImg.setFitHeight(VIEWER_HEIGHT);
+        bgImg.setOpacity(0.65); //set alpha
+
+        ai_group_bgImg = new ImageView();
+        ai_group_bgImg.setImage(new Image(getClass().getResource(URI_BASE + "bg.jpg").toString()));
+        ai_group_bgImg.setFitWidth(VIEWER_WIDTH);
+        ai_group_bgImg.setFitHeight(VIEWER_HEIGHT);
+        ai_group_bgImg.setOpacity(0.65); //set alpha
+
         vBox.getChildren().addAll(single, computerMode, debug);
-        mainGroup.getChildren().addAll(vBox, title);
+        //bob modified
+        mainGroup.getChildren().addAll(bgImg, vBox, title);
     }
 
 
-
     private void drawBoard(Group group) {
-        Rectangle rectangle = new Rectangle(3*Tile_Size, 3*Tile_Size, Color.LIGHTGRAY);
-        rectangle.setX(X_Side+2*Tile_Size);
-        rectangle.setY(Y_Side +2*Tile_Size);
+        Rectangle rectangle = new Rectangle(3 * Tile_Size, 3 * Tile_Size, Color.LIGHTGRAY);
+        rectangle.setX(X_Side + 2 * Tile_Size);
+        rectangle.setY(Y_Side + 2 * Tile_Size);
         group.getChildren().add(rectangle);
         Line[] row = new Line[8];
         Line[] column = new Line[8];
-        for (int i = 0; i < 8; i ++){
+        for (int i = 0; i < 8; i++) {
             row[i] = new Line();
             column[i] = new Line();
             row[i].setStartX(X_Side);
@@ -618,12 +677,12 @@ public class Viewer extends Application {
     }
 
 
-
     /**
      * Create different buttons of different scene
-     * @param group the Group which will add the buttons created
+     *
+     * @param group      the Group which will add the buttons created
      * @param isGameMode true if is in game mode (exclude debug)
-     * @param stage primaryStage
+     * @param stage      primaryStage
      */
     private void makeControls(Group group, boolean isGameMode, Stage stage) {
         Button diceRoll = new Button("Roll a dice");
@@ -725,8 +784,18 @@ public class Viewer extends Application {
     /* Init method for the aiMode */
     private void aiMode(Stage stage) {
         stage.setScene(aiModePlayerScene);
+        //bob
+        aiModePlayerScene.getStylesheets().add(this.getClass().getResource("GameBoardBG.css").toExternalForm());
+        aiBoardScene.getStylesheets().add(this.getClass().getResource("GameBoardBG.css").toExternalForm());
 
         aiModePlayerScene.setOnKeyPressed(e -> {
+            //bob
+            if (e.getCode() == KeyCode.F) {
+                if (!operating_piece.isFlipped)
+                    operating_piece.flipped();
+                else
+                    operating_piece.flippedBack();
+            }
             if (e.getCode() == KeyCode.ESCAPE) {
                 clearAll();
                 stage.setScene(mainScene);
@@ -742,34 +811,44 @@ public class Viewer extends Application {
 
         makeControls(rootAIMode, true, stage);
         rootAIMode.getChildren().clear();
-        rootAIMode.getChildren().addAll(boardAiModeA, controlsAiP ,generatingPieces, placedPieces);
-
+        rootAIMode.getChildren().addAll(boardAiModeA, bgImg, controlsAiP, generatingPieces, placedPieces);
 
         aiBoardGroup.getChildren().clear();
-        aiBoardGroup.getChildren().addAll(boardAiModeP, controlsAiA, pieces);
+        aiBoardGroup.getChildren().addAll(boardAiModeP, ai_group_bgImg, controlsAiA, pieces);
     }
 
     /* Init method for the single game mode or debug mode */
     private void singleMode(Stage stage, boolean isGameMode) {
         stage.setScene(singleModeScene);
 
+        //bob
+        singleModeScene.getStylesheets().add(this.getClass().getResource("GameBoardBG.css").toExternalForm());
+
         singleModeScene.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.ESCAPE) {
+            //bob
+            if (e.getCode() == KeyCode.F) {
+                if (!operating_piece.isFlipped)
+                    operating_piece.flipped();
+                else
+                    operating_piece.flippedBack();
+            } else if (e.getCode() == KeyCode.ESCAPE) {
                 clearAll();
                 stage.setScene(mainScene);
             }
         });
 
+
         makeControls(root, isGameMode, stage);
         root.getChildren().clear();
-        root.getChildren().addAll(boardSingleMode, controls, generatingPieces, placedPieces, pieces);
+        //bob modified
+        root.getChildren().addAll(boardSingleMode, bgImg, controls, pieces, generatingPieces, placedPieces);
     }
-
 
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        primaryStage.setTitle("StepsGame Viewer");
+        primaryStage.setTitle("Railroad Ink V1.0");
+        primaryStage.getIcons().add(new Image(getClass().getResource(URI_BASE + "icon.png").toString()));
         drawBoard(boardSingleMode);
         drawExits(boardSingleMode);
 
