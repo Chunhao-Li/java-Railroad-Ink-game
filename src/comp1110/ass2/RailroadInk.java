@@ -780,8 +780,8 @@ public class RailroadInk {
                     curr = prev + 1;
                     findLongestRoadRec(adjTile, visited, curr, max);
                 }
-                max[0] = Math.max(max[0], curr);
             }
+            max[0] = Math.max(max[0], curr);
         }
     }
 
