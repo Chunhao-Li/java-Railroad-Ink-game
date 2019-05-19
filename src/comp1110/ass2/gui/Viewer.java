@@ -487,7 +487,7 @@ public class Viewer extends Application {
                             generatingPieces.getChildren().clear();
                             group.getChildren().add(resultInfo);
                         } else {
-                            aiBoardString += generateBetterMove(aiBoardString, dicesAI);
+                            aiBoardString += generateMove(aiBoardString, dicesAI);
                             makePlacement(aiBoardString, true, pieces);
                             calculateScoreAiMode(group);
                         }
@@ -506,7 +506,7 @@ public class Viewer extends Application {
                                 generatingPieces.getChildren().clear();
                                 group.getChildren().add(resultInfo);
                             } else {
-                                aiBoardString += generateBetterMove(aiBoardString, dicesAI);
+                                aiBoardString += generateMove(aiBoardString, dicesAI);
                                 makePlacement(aiBoardString, true, pieces);
                                 calculateScoreAiMode(group);
                             }
@@ -750,7 +750,7 @@ public class Viewer extends Application {
             } else {
                 stage.setScene(aiBoardScene);
                 if (!dicesAI.isEmpty()) {
-                    aiBoardString += generateBetterMove(aiBoardString, dicesAI);
+                    aiBoardString += generateMove(aiBoardString, dicesAI);
                     makePlacement(aiBoardString, true, pieces);
                     if (diceRollTimes == 7) {
                         calculateScoreAiMode(rootAIMode);
@@ -856,8 +856,8 @@ public class Viewer extends Application {
         }
         if (diceRollTimes < 8) {
             dices = dicesAI = generateDiceRoll();
-            boardString += generateBetterMove(boardString, dices);
-            aiBoardString += generateBetterMove(aiBoardString, dicesAI);
+            boardString += generateMove(boardString, dices);    // AI 1
+            aiBoardString += generateBetterMove(aiBoardString, dicesAI); // AI 2
             makePlacement(boardString, false, pieces);
             makePlacement(aiBoardString, false, aiPieces);
             turnInfo = new Text(X_Side + 2 * Tile_Size, 60, "Turn: " + diceRollTimes);

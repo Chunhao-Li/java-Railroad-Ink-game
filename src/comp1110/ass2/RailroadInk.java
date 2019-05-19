@@ -940,6 +940,11 @@ public class RailroadInk {
         return sb.toString();
     }
 
+    public static void main(String[] args) {
+        String diceRoll = "A0A1A1B0";
+        System.out.println(generateBetterMove("", diceRoll));
+    }
+
 }
 
 
