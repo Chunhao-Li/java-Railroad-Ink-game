@@ -856,11 +856,91 @@ public class RailroadInk {
         return longestHighway + longestRailway + basicScore;
     }
 
-    public static String generateBetterMove(String boardString, String diceRoll,
-                                            List<String> sTiles) {
+    public static String generateBetterMove(String boardString, String diceRoll
+                                            ) {   //List<String> sTiles
         // FIXME TASK 13: a better AI
-        return null;
+        StringBuilder sb=new StringBuilder();
+        List<String> tiles = new ArrayList<>(4);
+        for (int i = 0; i+2 <= diceRoll.length(); i+=2) {
+            tiles.add(diceRoll.substring(i, i+2));
+        }
+
+        ArrayList<String> unUsedGridsBase = new ArrayList<>();
+        for (int i = 0; i < boardString.length(); i = i + 5) {
+            String unused = boardString.substring(i, i + 5).substring(2, 4);
+            unUsedGridsBase.add(unused);
+        }
+        String[] grids = {"A0", "A1", "A2", "A3", "A4",
+                "A5", "A6", "B0", "B1", "B2", "B3", "B4",
+                "B5", "B6", "C0", "C1", "C2", "C3", "C4",
+                "C5", "C6", "D0", "D1", "D2", "D3", "D4",
+                "D5", "D6", "E0", "E1", "E2", "E3", "E4",
+                "E5", "E6", "F0", "F1", "F2", "F3", "F4",
+                "F5", "F6", "G0", "G1", "G2", "G3", "G4",
+                "G5", "G6"};
+        ArrayList<String> usedGrids = new ArrayList<>();
+        for (int i = 0; i < grids.length; i++) {
+            if (!unUsedGridsBase.contains(grids[i])) {
+                usedGrids.add(grids[i]);
+            }
+        }
+
+        ArrayList<String> showString = new ArrayList<>();
+        for (int i = 0; i < usedGrids.size(); i++) {
+            for (int j = 0; j < tiles.size(); j++) {
+                for (int k = 0; k < 8; k++) {
+                    showString.add(tiles.get(j) + usedGrids.get(i) + k);
+                }
+            }
+        }
+
+
+        ArrayList<String> successPlaces = new ArrayList<String>();
+
+        for (int round=0;round<=3;round++){
+            int tail=4-round;
+            ArrayList<String> moves = new ArrayList<String>();
+            for (int i = 0; i < showString.size(); i++) {
+                if (isValidPlacementSequence(boardString + showString.get(i))) {
+                    moves.add(showString.get(i));
+                }
+            }
+            for (int i = 0; i < moves.size(); i++) {
+                String temp1=moves.get(i).substring(0, 2);
+                String temp2=moves.get(i).substring(2, 4);
+                int flag=-1;
+                if ( tail==1){
+
+                    sb.append(moves.get(i));
+                    successPlaces.add(temp2);
+                    boardString += moves.get(i);
+                    showString.remove(moves.get(i));
+                    tiles.remove(tiles.get(i));
+
+                }else{
+                    for (int j=0;j<tail;j++){
+                        if (temp1.equals(tiles.get(j)) && !successPlaces.contains(temp2)) {
+                            flag=j;
+                            break;
+                        }
+                    }
+                    if (flag >= 0) {
+                        sb.append(moves.get(i));
+                        successPlaces.add(temp2);
+                        boardString += moves.get(i);
+                        showString.remove(moves.get(i));
+                        tiles.remove(tiles.get(flag));
+                        break;
+                    }
+                }
+
+
+            }
+        }
+        return sb.toString();
     }
 
 }
+
+
 
