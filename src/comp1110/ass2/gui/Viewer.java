@@ -390,7 +390,7 @@ public class Viewer extends Application {
      * @return boolean
      */
     private boolean hasValidPlacement(boolean sIncluded) {
-        List<String> unUsedGrids = getUnusedGrids(boardString);
+        HashSet<String> availableGrids = getAvailableGrids(boardString);
         Set<String> tiles = new HashSet<>();
         for (int i = 0; i + 2 <= dices.length(); i += 2) {
             tiles.add(dices.substring(i, i + 2));
@@ -404,11 +404,10 @@ public class Viewer extends Application {
 
         for (String tile : tiles) {
             List<Character> orientations = getOrientations(tile);
-            for (String grid : unUsedGrids) {
+            for (String grid : availableGrids) {
                 for (char o : orientations) {
                     String placement = tile + grid + String.valueOf(o);
-                    if (isValidPlacementSequence(boardString + placement) &&
-                            areNeighboursValid(boardString, placement)) {
+                    if (isValidPlacementSequence(boardString + placement)) {
                         return true;
                     }
                 }
@@ -487,7 +486,7 @@ public class Viewer extends Application {
                             generatingPieces.getChildren().clear();
                             group.getChildren().add(resultInfo);
                         } else {
-                            aiBoardString += generateMove(aiBoardString, dicesAI);
+                            aiBoardString += generateBetterMove(aiBoardString, dicesAI, sTilesAi);
                             makePlacement(aiBoardString, true, pieces);
                             calculateScoreAiMode(group);
                         }
@@ -506,7 +505,7 @@ public class Viewer extends Application {
                                 generatingPieces.getChildren().clear();
                                 group.getChildren().add(resultInfo);
                             } else {
-                                aiBoardString += generateMove(aiBoardString, dicesAI);
+                                aiBoardString += generateBetterMove(aiBoardString, dicesAI, sTilesAi);
                                 makePlacement(aiBoardString, true, pieces);
                                 calculateScoreAiMode(group);
                             }
@@ -566,6 +565,7 @@ public class Viewer extends Application {
         initSTiles();
         generatingPieces.getChildren().clear();
         placedPieces.getChildren().clear();
+        aiPieces.getChildren().clear();
         sTilesNotPlaced.clear();
         diceRollTimes = sTilePerTurn = sTileTotal = 0;
         dices = dicesAI = boardString = aiBoardString = "";
@@ -750,7 +750,7 @@ public class Viewer extends Application {
             } else {
                 stage.setScene(aiBoardScene);
                 if (!dicesAI.isEmpty()) {
-                    aiBoardString += generateMove(aiBoardString, dicesAI);
+                    aiBoardString += generateBetterMove(aiBoardString, dicesAI, sTilesAi);
                     makePlacement(aiBoardString, true, pieces);
                     if (diceRollTimes == 7) {
                         calculateScoreAiMode(rootAIMode);
@@ -857,7 +857,7 @@ public class Viewer extends Application {
         if (diceRollTimes < 8) {
             dices = dicesAI = generateDiceRoll();
             boardString += generateMove(boardString, dices);    // AI 1
-            aiBoardString += generateBetterMove(aiBoardString, dicesAI); // AI 2
+            aiBoardString += generateBetterMove(aiBoardString, dicesAI, sTileAiComponent); // AI 2
             makePlacement(boardString, false, pieces);
             makePlacement(aiBoardString, false, aiPieces);
             turnInfo = new Text(X_Side + 2 * Tile_Size, 60, "Turn: " + diceRollTimes);

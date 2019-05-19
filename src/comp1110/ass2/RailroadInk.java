@@ -70,6 +70,7 @@ public class RailroadInk {
      * h: represents highway edge
      * r: represents railway edge
      * #: represents blank edge
+     * The order of the string is up, left, bottom, right
      * @author Frederick Li, Haoyan Liu
      * @param tilePlacement a char array of tile placement which contains 5 elements."B0A53"
      * @param orientation a char which is in the range '0'-'7'
@@ -118,23 +119,23 @@ public class RailroadInk {
         if (tilePlacementStringA.length() < 5 || tilePlacementStringB.length() < 5) {return false;}
         char[] a = tilePlacementStringA.toCharArray();
         char[] b = tilePlacementStringB.toCharArray();
-        if (Math.abs(a[2] - b[2]) > 1 || Math.abs(a[3] - b[3]) > 1) {return false;}// not connected
-        if (a[2] == b[2] && a[3] == b[3]) {return false;}//exactly copy paste in the same box
-        if (Math.abs(a[2] - b[2]) == 1 && Math.abs(a[3] - b[3]) == 1) {return false;}// diagonal position
+        if (Math.abs(a[2] - b[2]) > 1 || Math.abs(a[3] - b[3]) > 1) {return false;} //not adjacent
+        if (a[2] == b[2] && a[3] == b[3]) {return false;}
+        if (Math.abs(a[2] - b[2]) == 1 && Math.abs(a[3] - b[3]) == 1) {return false;} //diagonal position
         char[] aShape = getShape(a, a[4]).toCharArray();
         char[] bShape = getShape(b, b[4]).toCharArray();
 
         if (a[2] > b[2]) {
-            if (!(aShape[0] == bShape[2] && aShape[0] != '#')) {return false;} // if up!=down and up is not empty
+            if (!(aShape[0] == bShape[2] && aShape[0] != '#')) {return false;}  //vertically adjacent
         }
         if (a[2] < b[2]) {
-            if (!(aShape[2] == bShape[0] && aShape[2] != '#')) {return false;}//reverse previous
+            if (!(aShape[2] == bShape[0] && aShape[2] != '#')) {return false;} //vertically adjacent
         }
         if (a[3] > b[3]) {
-            if (!(aShape[1] == bShape[3] && aShape[1] != '#')) {return false;}//if left!=right and left is not empty
+            if (!(aShape[1] == bShape[3] && aShape[1] != '#')) {return false;} //horizontally adjacent
         }
         if (a[3] < b[3]) {
-            if (!(aShape[3] == bShape[1] && aShape[3] != '#')) {return false;}// reverse
+            if (!(aShape[3] == bShape[1] && aShape[3] != '#')) {return false;} //horizontally adjacent
         }
         return true;
     }
@@ -195,6 +196,56 @@ public class RailroadInk {
 
 
     /**
+     * This method is to get the adjacent grids of a tile if it exits
+     * @author Frederick Li
+     * @param tilePlacement a tile
+     * @return a List of adjacent grids positions
+     */
+    private static List<String> getAdjGrids(String tilePlacement) {
+        List<String> adjGrids = new ArrayList<>();
+        if (tilePlacement.isEmpty()) {
+            return adjGrids;
+        }
+        char row = tilePlacement.charAt(2);
+        char col = tilePlacement.charAt(3);
+        char[] adjRow = {(char) (row-1), row, (char) (row+1)};
+        char[] adjCol = {(char) (col-1), col, (char) (col+1)};
+        for (char r: adjRow) {
+            for (char c: adjCol) {
+                if (r < 'A' || r > 'G' || c < '0' || c > '6') {
+                    continue;
+                }
+                if (Math.abs(r - row) == 1 && Math.abs(c - col) == 1) {
+                    continue;
+                }
+                if (r == row && c == col) {
+                    continue;
+                }
+                String adjGrid = String.valueOf(r) + String.valueOf(c);
+                if (!adjGrids.contains(adjGrid)) {
+                    adjGrids.add(adjGrid);
+                }
+            }
+        }
+        return adjGrids;
+    }
+
+
+    /**
+     * A method split a board string into an array of  tile placements
+     * @param boardString a string represents the game state
+     * @return an array of tile placements
+     */
+    private static String[] splitBoardString(String boardString) {
+        String[] tilePlacements = new String[boardString.length()/5];
+        for (int i = 0; i+5 <= boardString.length(); i += 5) {
+            tilePlacements[i/5] = boardString.substring(i, i+5);
+        }
+        return tilePlacements;
+    }
+
+
+    /**
      * This method is to check whether all neighbouring tiles
      *      are validly connected for a new placement string
      * @author Frederick Li
@@ -209,46 +260,33 @@ public class RailroadInk {
             placed.put(grid, boardString.substring(i, i + 5));
         }
 
-        List<String> newPlacements = new ArrayList<>();
-        for (int i = 0; i+5 <= newPlacementString.length(); i += 5) {
-            newPlacements.add(newPlacementString.substring(i, i+5));
-        }
+        String[] newPlacements = splitBoardString(newPlacementString);
 
         for (String placement : newPlacements) {
+            List<String> adjGrids = getAdjGrids(placement);
             char row = placement.charAt(2);
             char col = placement.charAt(3);
-            for (char i = row == 'A' ? row : (char) (row - 1); i <= row + 1; i++) {
-                for (char j = col == '0' ? col : (char) (col - 1); j <= col + 1; j++) {
-                    if (i > 'G' || j > '6') {
-                        continue;
-                    }
-                    if (Math.abs(i - row) == 1 && Math.abs(j - col) == 1) {
-                        continue;
-                    }
-                    if (i == row && j == col) {
-                        continue;
-                    }
-                    String grid = String.valueOf(i) + String.valueOf(j);
-                    if (placed.containsKey(grid)) {
-                        String neighbour = placed.get(grid);
-                        String placementShape = getShape(placement.toCharArray(), placement.charAt(4));
-                        String neighbourShape = getShape(neighbour.toCharArray(), neighbour.charAt(4));
-                        if (row == i && (col < j
-                                ? (placementShape.charAt(3) != '#' && neighbourShape.charAt(1) != '#' &&
-                                placementShape.charAt(3) != neighbourShape.charAt(1))
-                                : (placementShape.charAt(1) != '#' && neighbourShape.charAt(3) != '#' &&
-                                placementShape.charAt(1) != neighbourShape.charAt(3)))) {
-                            return false;
-                        }
+            for (String grid: adjGrids) {
+                char r = grid.charAt(0);
+                char c = grid.charAt(1);
 
-                        if (col == j && (row < i
-                                ? (placementShape.charAt(2) != '#' && neighbourShape.charAt(0) != '#' &&
-                                placementShape.charAt(2) != neighbourShape.charAt(0))
-                                : (placementShape.charAt(0) != '#' && neighbourShape.charAt(2) != '#' &&
-                                placementShape.charAt(0) != neighbourShape.charAt(2)))) {
-                            return false;
-                        }
-
+                if (placed.containsKey(grid)) {
+                    String neighbour = placed.get(grid);
+                    String placementShape = getShape(placement.toCharArray(), placement.charAt(4));
+                    String neighbourShape = getShape(neighbour.toCharArray(), neighbour.charAt(4));
+                    if (row == r && (col < c
+                            ? (placementShape.charAt(3) != '#' && neighbourShape.charAt(1) != '#' &&
+                            placementShape.charAt(3) != neighbourShape.charAt(1))
+                            : (placementShape.charAt(1) != '#' && neighbourShape.charAt(3) != '#' &&
+                            placementShape.charAt(1) != neighbourShape.charAt(3)))) {
+                        return false;
+                    }
+                    if (col == c && (row < r
+                            ? (placementShape.charAt(2) != '#' && neighbourShape.charAt(0) != '#' &&
+                            placementShape.charAt(2) != neighbourShape.charAt(0))
+                            : (placementShape.charAt(0) != '#' && neighbourShape.charAt(2) != '#' &&
+                            placementShape.charAt(0) != neighbourShape.charAt(2)))) {
+                        return false;
                     }
                 }
             }
@@ -356,17 +394,17 @@ public class RailroadInk {
 
 
     /**
-     * This method is to get the neighbouring tiles of a tile from a list tiles
+     * This method is to get the adjacent tiles of a tile from a list of tiles
      * @author Mingchao Sima
-     * @param tile the target tile
+     * @param tilePlacement the target tile
      * @param tiles an ArrayList contains all unconnected tiles
-     * @return an ArrayList of all neighbouring tiles
+     * @return an ArrayList of all adjacent tiles
      */
-    private static ArrayList<String> getNeighbours(String tile, ArrayList<String> tiles) {
+    private static ArrayList<String> getNeighbours(String tilePlacement, ArrayList<String> tiles) {
         ArrayList<String> result = new ArrayList<>();
-        for (int i = 0; i < tiles.size(); i++) {
-            if (areConnectedNeighbours(tile, tiles.get(i))){ // print all connected neighbours
-                result.add(tiles.get(i));
+        for(String tile: tiles) {
+            if (areConnectedNeighbours(tilePlacement, tile)) {
+                result.add(tile);
             }
         }
         return result;
@@ -393,7 +431,7 @@ public class RailroadInk {
     public static int countExitsScore(String boardString) {
         ArrayList<String> tiles = new ArrayList<>();
         for (int i = 0; i+5 <= boardString.length(); i += 5) {
-            if (!isB2Tile(boardString.substring(i, i+5))){
+            if (!isB2Tile(boardString.substring(i, i+5))) {
                 tiles.add(boardString.substring(i, i+5));
             }
             else{
@@ -417,6 +455,10 @@ public class RailroadInk {
                         break;
                     }
                 }
+            }
+
+            // add the first tile if route is still empty
+            if (route.isEmpty()) {
                 route.add(tiles.get(0));
                 connectedTiles.add(tiles.get(0));
             }
@@ -470,20 +512,17 @@ public class RailroadInk {
      * @return the number of errors also regarded as scores.
      */
     public static int countErrorsScore(String boardString) {
-        String[] tilePlacements = new String[ boardString.length()/5];
-        for (int i = 0; i+5 <= boardString.length(); i += 5) {
-            tilePlacements[i/5] = (boardString.substring(i, i+5));
-        }
+        String[] tilePlacements = splitBoardString(boardString);
         String[] tiles = new String[tilePlacements.length];
         for (int i = 0; i < tiles.length; i++) {
-            tiles[i] = getShape(tilePlacements[i].toCharArray(), tilePlacements[i].charAt(4))//e.g R#R#
-                    + tilePlacements[i].substring(2, 4);// row,column
+            tiles[i] = getShape(tilePlacements[i].toCharArray(), tilePlacements[i].charAt(4))
+                    + tilePlacements[i].substring(2, 4); // add the positions
         }
 
-        // change tiles connected to the edge of the board to # ,and calculate no. of # later
+        // change tiles' shape that are connected to the blank edge of the board to #
         for (int i = 0; i < tiles.length; i++) {
             String t = tiles[i];
-            if (t.charAt(4) == 'A' && t.charAt(0) != '#') { //row1 and up not vacant
+            if (t.charAt(4) == 'A' && t.charAt(0) != '#') { //row == 'A' and shape[0] != '#'
                 t = "#" + t.substring(1);
             }
             if (t.charAt(4) == 'G' && t.charAt(2) != '#') {
@@ -555,10 +594,7 @@ public class RailroadInk {
      */
     public static int getBasicScore(String boardString) {
         // FIXME Task 8: compute the basic score
-        String[] tilePlacements = new String[boardString.length()/5];
-        for (int i = 0; i+5 <= boardString.length(); i += 5) {
-            tilePlacements[i/5] = boardString.substring(i, i+5);
-        }
+        String[] tilePlacements = splitBoardString(boardString);
 
         int exitScore = 0;
         int centerTilesScore = 0;
@@ -594,27 +630,28 @@ public class RailroadInk {
 
 
     /**
-     * Get all unplaced grids.
+     * Get all available adjacent grids as well as .
      * @author Frederick Li
      * @param boardString a sequence of current game state
-     * @return a List of String which contains all available grids
+     * @return a Set of String which contains all available grids
      */
-    public static List<String> getUnusedGrids(String boardString) {
-        List<String> board = new ArrayList<>();
-        for (char i = 'A'; i <= 'G'; i++) {
-            for (char j = '0'; j <= '6'; j++) {
-                String grid = String.valueOf(i) + String.valueOf(j);
-                board.add(grid);
-            }
-        }
-        List<String> usedGrids = new ArrayList<>();
+    public static HashSet<String> getAvailableGrids(String boardString) {
+        String[] exits = {"A1", "A3", "A5", "G1", "G3", "G5", "B0", "D0", "F0", "B6", "D6", "F6"};
+        List<String> availableExits = new ArrayList<>();
+        Collections.addAll(availableExits, exits); // all exits' positions
+        List<String> placedTiles = new ArrayList<>();
+
         for (int i = 0; i+5 <= boardString.length(); i+=5) {
             String grid = boardString.substring(i+2, i+4);
-            usedGrids.add(grid);
+            availableExits.removeIf(g -> g.equals(grid));   // remove exit's positions if placed
+            placedTiles.add(boardString.substring(i, i+5));
         }
-
-        board.removeAll(usedGrids);
-        return board;
+        HashSet<String> availableGrids = new HashSet<>(availableExits);
+        for (String tile: placedTiles) {
+            List<String> adjGrids = getAdjGrids(tile);
+            availableGrids.addAll(adjGrids);    // add all adjacent grids
+        }
+        return availableGrids;
     }
 
 
@@ -661,54 +698,53 @@ public class RailroadInk {
             tiles.add(diceRoll.substring(i, i+2));
         }
 
-        // this List contains the board positions of unused grids
-        List<String> unUsedGridsBase = getUnusedGrids(boardString);
-
-        // this contains all valid moves
-        HashSet<String> validMoves = new HashSet<>();
+        HashSet<String> validMoves = new HashSet<>(); // a collection of all valid moves
 
         int count = 0;
         while ( count < 4) {
-            List<String> unUsedGrids = new ArrayList<>(unUsedGridsBase);
-            HashMap<Integer, List<String>> movesCollection = new HashMap<>();    // key: the order of the move
+            HashMap<Integer, List<String>> movesCollection = new HashMap<>();  // key: the order of the move
             List<String> base =  new ArrayList<>();
-            base.add("");
-            movesCollection.put(-1, base);  // the base move
+            base.add(boardString);
+            movesCollection.put(-1, base);  // the initial boardString
             for (int i = 0; i < tiles.size(); i++) {
-                List<String> lastMoves = movesCollection.get(i-1);
-                if (null == lastMoves) {break;}
+                List<String> previousMoves = movesCollection.get(i-1);
+                if (null == previousMoves) {break;}
                 String tile = tiles.get(i);
                 List<Character> orientations = getOrientations(tile);
+
+                // main loop
                 outLoop:
-                for (String unUsedGrid : unUsedGrids) {
-                    for (char o : orientations) {
-                        String aMove = tile + unUsedGrid + o;
-                            for (String lastMove : lastMoves) {
-                                if (isValidPlacementSequence(boardString + lastMove + aMove)) {
-                                    String newMove = lastMove + aMove;
+                for (String oldBoardString: previousMoves) {
+                    HashSet<String> availableGrids = getAvailableGrids(oldBoardString);
 
-                                    // all 4 normal tiles have been placed
-                                    if (i == 3) {
-                                        return newMove;
-                                    }
+                    for (String grid: availableGrids) {
+                        for (char o: orientations) {
+                            String aMove = tile + grid + o;
+                            if (isValidPlacementSequence(oldBoardString + aMove)) {
+                                String newBoardString = oldBoardString + aMove;
 
-                                    movesCollection.computeIfAbsent(i, k -> new ArrayList<>());
-                                    List<String> currentMoves = movesCollection.get(i);
-                                    currentMoves.add(lastMove + aMove);
-                                    unUsedGrids.remove(unUsedGrid);
-                                    movesCollection.remove(i-1); // save memory
-                                    break outLoop;
+                                // all four normal tiles have been placed
+                                if (i == 3) {
+                                    return newBoardString.substring(boardString.length());
                                 }
+
+                                movesCollection.computeIfAbsent(i, k -> new ArrayList<>());
+                                List<String> currentMoves = movesCollection.get(i);
+                                currentMoves.add(newBoardString);
+                                movesCollection.remove(i - 1); // save memory
+                                break outLoop;
                             }
                         }
                     }
+
+                }
             }
 
-            for (int i = 3; i >= 0 ; i--) {
-                if (movesCollection.get(i) != null) {
-                    validMoves.addAll(movesCollection.get(i));
-                    break;
-                }
+            // get the newest moves collections
+            List<String> newestMoves = movesCollection.get(Collections.max(movesCollection.keySet()));
+            for (String move: newestMoves) {
+                String validMove = move.substring(boardString.length());
+                validMoves.add(validMove);
             }
             tiles.add(tiles.remove(0)); // shift rotate the tiles ordering
             count++;
@@ -752,7 +788,7 @@ public class RailroadInk {
         private HashMap<String, LinkedList<String>> adj; // adjacent tiles collection
         private int vertices;
 
-        public TileGraph(int vertices) {
+         TileGraph(int vertices) {
             this.vertices = vertices;
             adj = new HashMap<>();
         }
@@ -769,10 +805,9 @@ public class RailroadInk {
          * @param prev previous length
          * @param max an array with 1 element of the length of the longest road
          */
-        public void findLongestRoadRec(String s, HashMap<String, Boolean> visited,
+        private void findLongestRoadRec(String s, HashMap<String, Boolean> visited,
                                        int prev, int[] max) {
             visited.put(s, true);
-
             int curr = prev;
 
             for (String adjTile : adj.get(s)) {
@@ -818,16 +853,17 @@ public class RailroadInk {
 
         ArrayList<Integer> maxCollections = new ArrayList<>();
         for (String startTile : tilePlacements) {
+            // init the ArrayList
             HashMap<String, Boolean> visited = new HashMap<>();
             for (String key : tilePlacements) {
                 visited.put(key, false);
             }
-            int[] max = {Integer.MIN_VALUE};
+
+            int[] max = {Integer.MIN_VALUE}; // an array contains the max length
             tileGraph.findLongestRoadRec(startTile,visited ,1 ,max ); // recursively find the longest road
             maxCollections.add(max[0]);
 
         }
-
         return maxCollections.stream().max(Comparator.comparingInt(i->i)).orElseThrow();
     }
 
@@ -845,104 +881,146 @@ public class RailroadInk {
     public static int getAdvancedScore(String boardString) {
         // FIXME Task 12: compute the total score including bonus points
         int basicScore = getBasicScore(boardString);
-        String[] tilePlacements = new String[boardString.length()/5];
-        for (int i = 0; i+5 <= boardString.length(); i += 5) {
-            tilePlacements[i/5] = boardString.substring(i, i+5);
-        }
+        String[] tilePlacements = splitBoardString(boardString);
 
-        int longestRailway = findLongestRoad(tilePlacements,'r' );
-        int longestHighway = findLongestRoad(tilePlacements, 'h');
+        int longestRailway = findLongestRoad(tilePlacements,'r');
+        int longestHighway = findLongestRoad(tilePlacements,'h');
 
         return longestHighway + longestRailway + basicScore;
     }
 
-    public static String generateBetterMove(String boardString, String diceRoll
-                                            ) {   //List<String> sTiles
-        // FIXME TASK 13: a better AI
-        StringBuilder sb=new StringBuilder();
+
+    /**
+     * A better AI
+     * @author Frederick Li
+     * @param boardString a string represents the current game state
+     * @param diceRoll a string of diceRoll
+     * @param sTiles a List of available special tiles
+     * @return a String representing an ordered sequence of valid piece placements for the current round
+     */
+    public static String generateBetterMove(String boardString, String diceRoll,
+                                            List<String> sTiles) {
+        int[][] boardScore = {{10, 10, 10, 10, 10, 10, 10},
+                {10, 20, 20, 20, 20, 20, 10},
+                {10, 20, 50, 50, 50, 20, 10},
+                {10, 20, 50, 50, 50, 20, 10},
+                {10, 20, 50, 50, 50, 20, 10},
+                {10, 20, 20, 20, 20, 20, 10},
+                {10, 10, 10, 10, 10, 10, 10}};
+
         List<String> tiles = new ArrayList<>(4);
         for (int i = 0; i+2 <= diceRoll.length(); i+=2) {
             tiles.add(diceRoll.substring(i, i+2));
         }
+        Collections.shuffle(tiles);
 
-        ArrayList<String> unUsedGridsBase = new ArrayList<>();
-        for (int i = 0; i < boardString.length(); i = i + 5) {
-            String unused = boardString.substring(i, i + 5).substring(2, 4);
-            unUsedGridsBase.add(unused);
-        }
-        String[] grids = {"A0", "A1", "A2", "A3", "A4",
-                "A5", "A6", "B0", "B1", "B2", "B3", "B4",
-                "B5", "B6", "C0", "C1", "C2", "C3", "C4",
-                "C5", "C6", "D0", "D1", "D2", "D3", "D4",
-                "D5", "D6", "E0", "E1", "E2", "E3", "E4",
-                "E5", "E6", "F0", "F1", "F2", "F3", "F4",
-                "F5", "F6", "G0", "G1", "G2", "G3", "G4",
-                "G5", "G6"};
-        ArrayList<String> usedGrids = new ArrayList<>();
-        for (int i = 0; i < grids.length; i++) {
-            if (!unUsedGridsBase.contains(grids[i])) {
-                usedGrids.add(grids[i]);
+        // original placed tiles
+        String[] placedTiles = splitBoardString(boardString);
+
+        boolean sTilesIncluded = false; // whether to place special tile
+        HashMap<Integer, List<String>> movesCollection = new HashMap<>();
+        List<String> base = new ArrayList<>();
+        base.add(boardString);
+        movesCollection.put(-1, base); // avoid IndexOutOfBoundsException
+
+//        List<String> usedTiles = new ArrayList<>(); // used normal tiles
+        int usedNormalTile = 0; // the number of used tiles from the diceRoll
+
+        int count = 0;  // count for tiles shifting
+        while (usedNormalTile < 4 && count < 4) {
+            if (Math.random() > 0.5) {
+                sTilesIncluded = true;
             }
-        }
+            boolean sTilesUsed = false; // can only use 1 special tile each turn
+            List<String> availableTiles = new ArrayList<>(tiles);
+            HashMap<Integer, String> scoreMove = new HashMap<>(); // moves with key(score)
 
-        ArrayList<String> showString = new ArrayList<>();
-        for (int i = 0; i < usedGrids.size(); i++) {
-            for (int j = 0; j < tiles.size(); j++) {
-                for (int k = 0; k < 8; k++) {
-                    showString.add(tiles.get(j) + usedGrids.get(i) + k);
+            if (sTilesIncluded) {
+                availableTiles.addAll(sTiles);
+            }
+
+            // start of the main loop
+            for (int i = 0; i < availableTiles.size(); i++) {
+                String tile = availableTiles.get(i);
+                if (sTilesUsed) {
+                    break;   // all the remaining tiles are special tiles
                 }
-            }
-        }
+                List<String> previousBoard = movesCollection.get(i - 1);
+                if (previousBoard == null) { continue; }
 
+                List<Character> orientations = getOrientations(tile);
 
-        ArrayList<String> successPlaces = new ArrayList<String>();
+                for (String oldBoardString : previousBoard) {
+                    scoreMove.clear();  // init the scoreMove
+                    HashSet<String> availableGrids = getAvailableGrids(oldBoardString);
 
-        for (int round=0;round<=3;round++){
-            int tail=4-round;
-            ArrayList<String> moves = new ArrayList<String>();
-            for (int i = 0; i < showString.size(); i++) {
-                if (isValidPlacementSequence(boardString + showString.get(i))) {
-                    moves.add(showString.get(i));
-                }
-            }
-            for (int i = 0; i < moves.size(); i++) {
-                String temp1=moves.get(i).substring(0, 2);
-                String temp2=moves.get(i).substring(2, 4);
-                int flag=-1;
-                if ( tail==1){
+                    for (String grid : availableGrids) {
+                        for (char o : orientations) {
+                            String aMove = tile + grid + o;
+                            if (isValidPlacementSequence(oldBoardString + aMove)) {
+                                if (tile.startsWith("S")) {
+                                    sTilesUsed = true;
+                                    sTiles.remove(tile);  // every special tiles can be used at most once
+                                } else {
+                                    usedNormalTile++; // increment normal tiles' count
+                                }
 
-                    sb.append(moves.get(i));
-                    successPlaces.add(temp2);
-                    boardString += moves.get(i);
-                    showString.remove(moves.get(i));
-                    tiles.remove(tiles.get(i));
+                                String newBoardString = oldBoardString + aMove;
+                                // score based on the board (different method according to the number of placed tiles)
+                                int score = placedTiles.length < 20 ?
+                                        boardScore[grid.charAt(0) - 'A'][grid.charAt(1) - '0'] :
+                                        60 - boardScore[grid.charAt(0) - 'A'][grid.charAt(1) - '0'];
 
-                }else{
-                    for (int j=0;j<tail;j++){
-                        if (temp1.equals(tiles.get(j)) && !successPlaces.contains(temp2)) {
-                            flag=j;
-                            break;
+                                ArrayList<String> placed = new ArrayList<>();
+                                for (int j = 0; j + 5 <= oldBoardString.length(); j += 5) {
+                                    placed.add(oldBoardString.substring(j, j + 5));
+                                }
+                                ArrayList<String> adjTiles = getNeighbours(aMove, placed);
+
+                                if (!adjTiles.isEmpty()) {
+                                    score += 40; // connected to existing route
+                                } else {
+                                    score += 10;
+                                }
+                                score += countErrorsScore(newBoardString) * 15; // reduce score if there exits errors
+                                scoreMove.put(score, newBoardString);
+                            }
                         }
                     }
-                    if (flag >= 0) {
-                        sb.append(moves.get(i));
-                        successPlaces.add(temp2);
-                        boardString += moves.get(i);
-                        showString.remove(moves.get(i));
-                        tiles.remove(tiles.get(flag));
-                        break;
+
+                    if (!scoreMove.isEmpty()) {
+                        movesCollection.computeIfAbsent(i, k -> new ArrayList<>());
+                        List<String> currentMoves = movesCollection.get(i);
+
+                        // add the move whose score is the highest
+                        currentMoves.add(scoreMove.get(Collections.max(scoreMove.keySet())));
                     }
                 }
 
+            }
 
+            if (usedNormalTile < 4) {
+                tiles.add(tiles.remove(0)); // shift rotate the tiles
+                movesCollection.clear();
+                movesCollection.put(-1, base);
+                count++;
+            }
+
+        }
+
+        int finalScore = Integer.MIN_VALUE;
+        String returnMove = "";
+        // get the most recent moves collection
+        List<String> moves = movesCollection.get(Collections.max(movesCollection.keySet()));
+
+        for (String move: moves) {
+            int currScore = getAdvancedScore(move);
+            if (currScore > finalScore) {
+                returnMove = move.substring(boardString.length());
+                finalScore = currScore;
             }
         }
-        return sb.toString();
-    }
-
-    public static void main(String[] args) {
-        String diceRoll = "A0A1A1B0";
-        System.out.println(generateBetterMove("", diceRoll));
+        return  returnMove;
     }
 
 }
