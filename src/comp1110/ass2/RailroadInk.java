@@ -856,5 +856,11 @@ public class RailroadInk {
         return longestHighway + longestRailway + basicScore;
     }
 
+    public static String generateBetterMove(String boardString, String diceRoll,
+                                            List<String> sTiles) {
+        // FIXME TASK 13: a better AI
+        return null;
+    }
+
 }
 
