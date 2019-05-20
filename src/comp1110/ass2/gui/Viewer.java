@@ -486,6 +486,9 @@ public class Viewer extends Application {
                             generatingPieces.getChildren().clear();
                             group.getChildren().add(resultInfo);
                         } else {
+                            if (sTilesAi.size() == 3) {
+                                sTilesAi.clear();
+                            }
                             aiBoardString += generateBetterMove(aiBoardString, dicesAI, sTilesAi);
                             makePlacement(aiBoardString, true, pieces);
                             calculateScoreAiMode(group);
@@ -505,6 +508,9 @@ public class Viewer extends Application {
                                 generatingPieces.getChildren().clear();
                                 group.getChildren().add(resultInfo);
                             } else {
+                                if (sTilesAi.size() == 3) {
+                                    sTilesAi.clear();
+                                }
                                 aiBoardString += generateBetterMove(aiBoardString, dicesAI, sTilesAi);
                                 makePlacement(aiBoardString, true, pieces);
                                 calculateScoreAiMode(group);
@@ -750,6 +756,9 @@ public class Viewer extends Application {
             } else {
                 stage.setScene(aiBoardScene);
                 if (!dicesAI.isEmpty()) {
+                    if (sTilesAi.size() == 3) {
+                        sTilesAi.clear();
+                    }
                     aiBoardString += generateBetterMove(aiBoardString, dicesAI, sTilesAi);
                     makePlacement(aiBoardString, true, pieces);
                     if (diceRollTimes == 7) {
@@ -856,6 +865,12 @@ public class Viewer extends Application {
         }
         if (diceRollTimes < 8) {
             dices = dicesAI = generateDiceRoll();
+            if (sTilesAi.size() == 3) {
+                sTilesAi.clear();
+            }
+            if (sTileAiComponent.size() == 3) {
+                sTileAiComponent.clear();
+            }
             boardString += generateMove(boardString, dices);    // AI 1
             aiBoardString += generateBetterMove(aiBoardString, dicesAI, sTileAiComponent); // AI 2
             makePlacement(boardString, false, pieces);
