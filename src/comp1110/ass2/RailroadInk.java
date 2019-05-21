@@ -4,6 +4,8 @@ import javafx.beans.property.BooleanProperty;
 
 import java.util.*;
 
+import static java.util.Arrays.asList;
+
 public class RailroadInk {
     /**
      * Determine whether a tile placement string is well-formed:
@@ -700,59 +702,70 @@ public class RailroadInk {
             tiles.add(diceRoll.substring(i, i+2));
         }
 
-        HashSet<String> validMoves = new HashSet<>(); // a collection of all valid moves
+        HashMap<String, String> usedTiles = new HashMap<>();
+        for (int i = 0; i+5 <= boardString.length() ; i+=5) {
+            usedTiles.put(boardString.substring(i+2, i+4), boardString.substring(i, i+5));
+        }
 
+        List<String> exits = Arrays.asList("A1", "A3", "A5", "G1", "G3", "G5", "B0", "D0", "F0", "B6", "D6", "F6");
+
+        String result = "";
         int count = 0;
         while ( count < 4) {
-            HashMap<Integer, List<String>> movesCollection = new HashMap<>();  // key: the order of the move
-            List<String> base =  new ArrayList<>();
-            base.add(boardString);
-            movesCollection.put(-1, base);  // the initial boardString
+
+            StringBuilder currBoard = new StringBuilder(boardString); // this is the current board string
             for (int i = 0; i < tiles.size(); i++) {
-                List<String> previousMoves = movesCollection.get(i-1);
-                if (null == previousMoves) {break;}
+                boolean isLegal = false; // whether the placement is legal
+                if (currBoard.length() < boardString.length() + 5 * i) {break;}
                 String tile = tiles.get(i);
+
                 List<Character> orientations = getOrientations(tile);
+                HashSet<String> availableGrids = getAvailableGrids(currBoard.toString());
 
-                // main loop
                 outLoop:
-                for (String oldBoardString: previousMoves) {
-                    HashSet<String> availableGrids = getAvailableGrids(oldBoardString);
-
-                    for (String grid: availableGrids) {
-                        for (char o: orientations) {
-                            String aMove = tile + grid + o;
-                            if (isValidPlacementSequence(oldBoardString + aMove)) {
-                                String newBoardString = oldBoardString + aMove;
-
-                                // all four normal tiles have been placed
-                                if (i == 3) {
-                                    return newBoardString.substring(boardString.length());
-                                }
-
-                                movesCollection.computeIfAbsent(i, k -> new ArrayList<>());
-                                List<String> currentMoves = movesCollection.get(i);
-                                currentMoves.add(newBoardString);
-                                movesCollection.remove(i - 1); // save memory
-                                break outLoop;
+                for (String grid: availableGrids) {
+                    for (char o : orientations) {
+                        String aMove = tile + grid + o;
+                        if (isExitConnected(aMove) ) {
+                            if (isValidPlacementSequence(currBoard + aMove)) {
+                                isLegal = true;
                             }
+                        } else {
+                            List<String> adjGrids = getAdjGrids(tile + grid + "0");
+                            for (String usedGrid : adjGrids) {
+                                if (!usedTiles.containsKey(usedGrid)) {continue; }
+                                String placedTile = usedTiles.get(usedGrid);
+                                if (areConnectedNeighbours(aMove, placedTile)
+                                        && isValidPlacementSequence(currBoard + aMove)) {
+                                    isLegal = true;
+                                }
+                            }
+                        }
+
+                        if (isLegal) {
+                            usedTiles.put(grid, aMove);
+                            currBoard.append(aMove);
+                            break outLoop;
                         }
                     }
 
                 }
+
             }
 
-            // get the newest moves collections
-            List<String> newestMoves = movesCollection.get(Collections.max(movesCollection.keySet()));
-            for (String move: newestMoves) {
-                String validMove = move.substring(boardString.length());
-                validMoves.add(validMove);
+
+            String move = currBoard.substring(boardString.length());
+            if (move.length() == 20) {
+                return move;  // 4 normal tiles have been used
+            } else if (result.length() < move.length()) {
+                    result = move;
             }
+
             tiles.add(tiles.remove(0)); // shift rotate the tiles ordering
             count++;
 
         }
-        return longestMove(validMoves);
+        return result;
     }
 
 
@@ -853,17 +866,16 @@ public class RailroadInk {
             }
         }
 
-        HashMap<String, Boolean> visitedBase = new HashMap<>();
+        HashMap<String, Boolean> visited = new HashMap<>();
         for (String key : tilePlacements) {
-            visitedBase.put(key, false);
+            visited.put(key, false);
         }
 
         ArrayList<Integer> maxCollections = new ArrayList<>();
         for (String startTile : tilePlacements) {
-            // init the ArrayList
-            HashMap<String, Boolean> visited = new HashMap<>(visitedBase);
-
-
+            if (tileGraph.adj.get(startTile).size() > 1) {
+                continue;   // start tile's adjacent tiles should be one
+            }
             int[] max = {Integer.MIN_VALUE}; // an array contains the max length
             tileGraph.findLongestRoadRec(startTile, visited,1, max); // recursively find the longest road
             maxCollections.add(max[0]);
