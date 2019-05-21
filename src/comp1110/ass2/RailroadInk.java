@@ -1,5 +1,7 @@
 package comp1110.ass2;
 
+import javafx.beans.property.BooleanProperty;
+
 import java.util.*;
 
 public class RailroadInk {
@@ -808,15 +810,17 @@ public class RailroadInk {
         private void findLongestRoadRec(String s, HashMap<String, Boolean> visited,
                                        int prev, int[] max) {
             visited.put(s, true);
-            int curr = prev;
+            int curr = 0;
 
             for (String adjTile : adj.get(s)) {
                 if (!visited.get(adjTile)) {
                     curr = prev + 1;
                     findLongestRoadRec(adjTile, visited, curr, max);
                 }
+                max[0] = Math.max(max[0], curr);
             }
-            max[0] = Math.max(max[0], curr);
+            visited.put(s, false); // back tracking
+
         }
     }
 
@@ -824,14 +828,12 @@ public class RailroadInk {
     /**
      * This method is to find the longest road from a route (collection with tiles)
      * @author Frederick Li
-     * @param tiles an array of tiles
+     * @param tilePlacements an array of tiles
      * @param k the kind (railway or highway) : either 'r' or 'h'
      * @return the length of the longest road
      */
-    public static int findLongestRoad(String[] tiles, char k) {
-        HashSet<String> tilePlacements = new HashSet<>();
-        Collections.addAll(tilePlacements,tiles);
-        TileGraph tileGraph = new TileGraph(tilePlacements.size());
+    public static int findLongestRoad(String[] tilePlacements, char k) {
+        TileGraph tileGraph = new TileGraph(tilePlacements.length);
 
         // initialize tile graph
         for (String tile : tilePlacements) {
@@ -851,21 +853,25 @@ public class RailroadInk {
             }
         }
 
+        HashMap<String, Boolean> visitedBase = new HashMap<>();
+        for (String key : tilePlacements) {
+            visitedBase.put(key, false);
+        }
+
         ArrayList<Integer> maxCollections = new ArrayList<>();
         for (String startTile : tilePlacements) {
             // init the ArrayList
-            HashMap<String, Boolean> visited = new HashMap<>();
-            for (String key : tilePlacements) {
-                visited.put(key, false);
-            }
+            HashMap<String, Boolean> visited = new HashMap<>(visitedBase);
+
 
             int[] max = {Integer.MIN_VALUE}; // an array contains the max length
-            tileGraph.findLongestRoadRec(startTile,visited ,1 ,max ); // recursively find the longest road
+            tileGraph.findLongestRoadRec(startTile, visited,1, max); // recursively find the longest road
             maxCollections.add(max[0]);
 
         }
         return maxCollections.stream().max(Comparator.comparingInt(i->i)).orElseThrow();
     }
+
 
 
     /**
