@@ -4,5 +4,5 @@ We declare that the work toward our submission of Stage G was distributed among 
 * u3456789 40
 * u0123456 30
 
-Signed: Chunhao Li (u6527752), Bob Smith (u3456789), and Sue Black (u0123456)
+Signed: Chunhao Li (u6527752), Haoyan Liu (u6720989), and Sue Black (u0123456)
 
