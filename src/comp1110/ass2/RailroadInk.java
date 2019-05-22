@@ -1,10 +1,6 @@
 package comp1110.ass2;
 
-import javafx.beans.property.BooleanProperty;
-
 import java.util.*;
-
-import static java.util.Arrays.asList;
 
 public class RailroadInk {
     /**
@@ -237,21 +233,22 @@ public class RailroadInk {
 
     /**
      * A method split a board string into an array of  tile placements
-     * @param boardString a string represents the game state
+     * @param string a string needs to be split
+     * @param len the length of substring
      * @return an array of tile placements
      */
-    private static String[] splitBoardString(String boardString) {
-        String[] tilePlacements = new String[boardString.length()/5];
-        for (int i = 0; i+5 <= boardString.length(); i += 5) {
-            tilePlacements[i/5] = boardString.substring(i, i+5);
+    public static String[] splitString(String string, int len) {
+        String[] subStrings = new String[string.length()/len];
+        for (int i = 0; i+len <= string.length(); i += len) {
+            subStrings[i/len] = string.substring(i, i+len);
         }
-        return tilePlacements;
+        return subStrings;
     }
 
 
     /**
-     * This method is to check whether all neighbouring tiles
-     *      are validly connected for a new placement string
+     * A helper method for isValidPlacementSequence that is to check
+     * whether all neighbouring tiles are validly connected for a new placement string
      * @author Frederick Li
      * @param boardString the original game state
      * @param newPlacementString a sequence of new placements
@@ -264,7 +261,7 @@ public class RailroadInk {
             placed.put(grid, boardString.substring(i, i + 5));
         }
 
-        String[] newPlacements = splitBoardString(newPlacementString);
+        String[] newPlacements = splitString(newPlacementString, 5);
 
         for (String placement : newPlacements) {
             List<String> adjGrids = getAdjGrids(placement);
@@ -274,7 +271,7 @@ public class RailroadInk {
                 char r = grid.charAt(0);
                 char c = grid.charAt(1);
 
-                if (placed.containsKey(grid)) {
+                if (placed.containsKey(grid)) { // placed tiles are in its adjacent grids
                     String neighbour = placed.get(grid);
                     String placementShape = getShape(placement.toCharArray(), placement.charAt(4));
                     String neighbourShape = getShape(neighbour.toCharArray(), neighbour.charAt(4));
@@ -361,7 +358,7 @@ public class RailroadInk {
     public static String generateDiceRoll() {
         // FIXME Task 7: generate a dice roll
         Random random = new Random();
-        String [] rolls={"AAAB","ABAA","AABA","BAAA"};
+        String [] rolls={"AAAB", "ABAA", "AABA", "BAAA"};
         String roll = rolls[0];
         String result = "";
         for (int i = 0; i <4; i++) {
@@ -387,11 +384,11 @@ public class RailroadInk {
     private static ArrayList<String> replaceB2(String B2) {
         ArrayList<String> replace = new ArrayList<>();
         if (getShape(B2.toCharArray(), B2.charAt(4)).charAt(0) == 'h'){ // top is highway
-            replace.add("A1"+B2.substring(2,4)+"1");// rotate A1
-            replace.add("A4"+B2.substring(2,4)+"0");// change it to A1 and A4
+            replace.add("A1" + B2.substring(2,4) + "1");// rotate A1
+            replace.add("A4" + B2.substring(2,4) + "0");// change it to A1 and A4
         }else {
-            replace.add("A1"+B2.substring(2,4)+"0");
-            replace.add("A4"+B2.substring(2,4)+"1");// rotate A4
+            replace.add("A1" + B2.substring(2,4) + "0");
+            replace.add("A4" + B2.substring(2,4) + "1");// rotate A4
         }
         return replace;
     }
@@ -516,7 +513,7 @@ public class RailroadInk {
      * @return the number of errors also regarded as scores.
      */
     public static int countErrorsScore(String boardString) {
-        String[] tilePlacements = splitBoardString(boardString);
+        String[] tilePlacements = splitString(boardString, 5);
         String[] tiles = new String[tilePlacements.length];
         for (int i = 0; i < tiles.length; i++) {
             tiles[i] = getShape(tilePlacements[i].toCharArray(), tilePlacements[i].charAt(4))
@@ -598,7 +595,7 @@ public class RailroadInk {
      */
     public static int getBasicScore(String boardString) {
         // FIXME Task 8: compute the basic score
-        String[] tilePlacements = splitBoardString(boardString);
+        String[] tilePlacements = splitString(boardString, 5);
 
         int exitScore = 0;
         int centerTilesScore = 0;
@@ -613,23 +610,6 @@ public class RailroadInk {
         }
         return exitScore+centerTilesScore+deadEndsScore;
 
-    }
-
-
-    /**
-     * Returns the longest move in the list. A helper method for task 10
-     * @author Frederick Li
-     * @param moves a List of moves
-     * @return the longest move
-     */
-    static String longestMove(HashSet<String> moves) {
-        String longestMove = "";
-        for (String move :moves) {
-            if (move.length() > longestMove.length()) {
-                longestMove = move;
-            }
-        }
-        return longestMove;
     }
 
 
@@ -697,10 +677,9 @@ public class RailroadInk {
      */
     public static String generateMove(String boardString, String diceRoll) {
         // FIXME Task 10: generate a valid move
-        List<String> tiles = new ArrayList<>(4);
-        for (int i = 0; i+2 <= diceRoll.length(); i+=2) {
-            tiles.add(diceRoll.substring(i, i+2));
-        }
+        String[] dices = splitString(diceRoll, 2);
+        List<String> tiles = new ArrayList<String>();
+        Collections.addAll(tiles, dices);
 
         HashMap<String, String> usedTiles = new HashMap<>();
         for (int i = 0; i+5 <= boardString.length() ; i+=5) {
@@ -712,10 +691,8 @@ public class RailroadInk {
         String result = "";
         int count = 0;
         while ( count < 4) {
-
             StringBuilder currBoard = new StringBuilder(boardString); // this is the current board string
             for (int i = 0; i < tiles.size(); i++) {
-                boolean isLegal = false; // whether the placement is legal
                 if (currBoard.length() < boardString.length() + 5 * i) {break;}
                 String tile = tiles.get(i);
 
@@ -726,39 +703,33 @@ public class RailroadInk {
                 for (String grid: availableGrids) {
                     for (char o : orientations) {
                         String aMove = tile + grid + o;
-                        if (isExitConnected(aMove) ) {
-                            if (isValidPlacementSequence(currBoard + aMove)) {
-                                isLegal = true;
-                            }
-                        } else {
-                            List<String> adjGrids = getAdjGrids(tile + grid + "0");
-                            for (String usedGrid : adjGrids) {
-                                if (!usedTiles.containsKey(usedGrid)) {continue; }
-                                String placedTile = usedTiles.get(usedGrid);
-                                if (areConnectedNeighbours(aMove, placedTile)
-                                        && isValidPlacementSequence(currBoard + aMove)) {
-                                    isLegal = true;
-                                }
-                            }
-                        }
-
-                        if (isLegal) {
-                            usedTiles.put(grid, aMove);
+                        if (isExitConnected(aMove)
+                                && isValidPlacementSequence(currBoard + aMove)) {
+                            usedTiles.put(grid, aMove); // update used tiles
                             currBoard.append(aMove);
                             break outLoop;
+
+                        }
+                        List<String> adjGrids = getAdjGrids(tile + grid + "0");
+                        for (String usedGrid : adjGrids) {
+                            if (!usedTiles.containsKey(usedGrid)) {continue;} // no placed tiles are in its adjacent grids
+                            String placedTile = usedTiles.get(usedGrid);
+                            if (areConnectedNeighbours(aMove, placedTile)
+                                    && isValidPlacementSequence(currBoard + aMove)) {
+                                usedTiles.put(grid, aMove); // update used tiles
+                                currBoard.append(aMove);
+                                break outLoop;
+                            }
                         }
                     }
-
                 }
-
             }
-
 
             String move = currBoard.substring(boardString.length());
             if (move.length() == 20) {
                 return move;  // 4 normal tiles have been used
             } else if (result.length() < move.length()) {
-                    result = move;
+                result = move;
             }
 
             tiles.add(tiles.remove(0)); // shift rotate the tiles ordering
@@ -899,7 +870,7 @@ public class RailroadInk {
     public static int getAdvancedScore(String boardString) {
         // FIXME Task 12: compute the total score including bonus points
         int basicScore = getBasicScore(boardString);
-        String[] tilePlacements = splitBoardString(boardString);
+        String[] tilePlacements = splitString(boardString, 5);
 
         int longestRailway = findLongestRoad(tilePlacements,'r');
         int longestHighway = findLongestRoad(tilePlacements,'h');
@@ -918,43 +889,30 @@ public class RailroadInk {
      */
     public static String generateBetterMove(String boardString, String diceRoll,
                                             List<String> sTiles) {
-        int[][] boardScore = {{10, 10, 10, 10, 10, 10, 10},
-                {10, 20, 20, 20, 20, 20, 10},
-                {10, 20, 50, 50, 50, 20, 10},
-                {10, 20, 50, 50, 50, 20, 10},
-                {10, 20, 50, 50, 50, 20, 10},
-                {10, 20, 20, 20, 20, 20, 10},
-                {10, 10, 10, 10, 10, 10, 10}};
 
-        List<String> tiles = new ArrayList<>(4);
-        for (int i = 0; i+2 <= diceRoll.length(); i+=2) {
-            tiles.add(diceRoll.substring(i, i+2));
-        }
+        List<String> tiles = Arrays.asList(splitString(diceRoll, 2));
+
         Collections.shuffle(tiles);
 
         // original placed tiles
-        String[] placedTiles = splitBoardString(boardString);
+        String[] placedTiles = splitString(boardString, 5);
 
-        boolean sTilesIncluded = false; // whether to place special tile
         HashMap<Integer, List<String>> movesCollection = new HashMap<>();
         List<String> base = new ArrayList<>();
         base.add(boardString);
         movesCollection.put(-1, base); // avoid IndexOutOfBoundsException
 
-//        List<String> usedTiles = new ArrayList<>(); // used normal tiles
         int usedNormalTile = 0; // the number of used tiles from the diceRoll
 
         int count = 0;  // count for tiles shifting
         while (usedNormalTile < 4 && count < 4) {
-            if (Math.random() > 0.5) {
-                sTilesIncluded = true;
-            }
+
             boolean sTilesUsed = false; // can only use 1 special tile each turn
             List<String> availableTiles = new ArrayList<>(tiles);
             HashMap<Integer, String> scoreMove = new HashMap<>(); // moves with key(score)
 
-            if (sTilesIncluded) {
-                availableTiles.addAll(sTiles);
+            if (Math.random() > 0.5) {
+                availableTiles.addAll(sTiles); // include special tiles
             }
 
             // start of the main loop
@@ -985,9 +943,7 @@ public class RailroadInk {
 
                                 String newBoardString = oldBoardString + aMove;
                                 // score based on the board (different method according to the number of placed tiles)
-                                int score = placedTiles.length < 20 ?
-                                        boardScore[grid.charAt(0) - 'A'][grid.charAt(1) - '0'] :
-                                        60 - boardScore[grid.charAt(0) - 'A'][grid.charAt(1) - '0'];
+                                int score = getBoardScore(grid, placedTiles.length);
 
                                 ArrayList<String> placed = new ArrayList<>();
                                 for (int j = 0; j + 5 <= oldBoardString.length(); j += 5) {
@@ -1040,6 +996,23 @@ public class RailroadInk {
         }
         return  returnMove;
     }
+
+    private static int getBoardScore(String grid, int placedTile) {
+        int[][] boardScore = {{10, 10, 10, 10, 10, 10, 10},
+                {10, 20, 20, 20, 20, 20, 10},
+                {10, 20, 50, 50, 50, 20, 10},
+                {10, 20, 50, 50, 50, 20, 10},
+                {10, 20, 50, 50, 50, 20, 10},
+                {10, 20, 20, 20, 20, 20, 10},
+                {10, 10, 10, 10, 10, 10, 10}};
+
+        if (placedTile < 20) {
+            return boardScore[grid.charAt(0) - 'A'][grid.charAt(1) - '0'];
+        } else {
+            return boardScore[grid.charAt(0) - 'A'][grid.charAt(1) - '0'];
+        }
+    }
+
 
 
 }

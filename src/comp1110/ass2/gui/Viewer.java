@@ -29,30 +29,39 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * This is a JavaFX application that gives a graphical user interface (GUI) to the Railroad Ink game.
+ * This is a JavaFX application that provides a graphical user interface for the Railroad Ink game.
  * <p>
  *
- * @author Frederick Li, Mingchao Sima (makePlacement and drawExits)
+ * @author Frederick Li (except explicitly commented)
+ *
  * The game feature:
- * - It has three modes (single mode), (ai mode), (debug mode) which correspond to the button
- * -    "Single game", "Play with computer", "Debug mode" in the main page.
- * - In every mode, users can press "ESCAPE" to quit current game and go back to the main page.
- * - In the main page, useres can press "Q" to quit the game
+ * - It has four modes (Single Mode), (Player to AI mode), (Debug Mode), (AI to AI mode) which correspond to
+ * -    the buttons "Single game", "Play with computer", "Debug mode", "AI to AI" in the main page.
+ * - In every mode, users can press "ESCAPE" to quit and clear current game state
+ * -    and go back to the main page.
+ * - In the main page, useres can press "Q" to quit the game.
+ *
  * - Single Mode:
  * -    Users can press "Roll a dice" to start a new turn, and press "clear" to end the current game
- * -    Users can rotate the tiles using mouse scroll on tiles
- * -    Users can drag tiles and put them on the board
+ * -    Users can rotate the tiles using mouse scroll on tiles, flip the tiles when click twice on
+ * -        the tile or flip back with tripple click.
+ * -    Users can drag tiles and put them on the board.
  * -    All other rules are in README.md.
- * - AI Mode:
+ * - Player to AI Mode:
+ * -    Most of the features are the same as the Single Mode.
  * -    "Change to AI" button can enable AI to play moves.
- * -    In every turn except turn 7, users need to press "Change to AI" before the next turn.
+ * -    In every turn except turn 7, users need to press "Change to AI" which enables AI to make a move.
  * -    Users can press "New Game" to end the current game and start a new one.
  * -    Users can press "Change to AI" to change the board to AI's, and "Go back to player" to switch back
  * -    All other rules are in README.md.
  * - Debug Mode:
  * -    Users can input any tile placements in the TextField and then press "Refresh" to show them
  * -    When users input any illegal texts in the TextField, "Refresh" can clear the current tiles.
- * -    "Place tiles" can also place all tiles instead of clearing TextField.
+ * -    "Place tiles" does the same thing except that it won't clear TextField.
+ * - AI to AI:
+ * -    A simple mode for testing different AIs' performance. Simpliy change the "generateMove"
+ * -    and "generateBetterMove" in the method playMoveAi for using different AI. (add or remove
+ * -    "sTilesAI" or "STileAicomponent" if the methods needs to use special tiles or not).
  */
 public class Viewer extends Application {
     private static final double VIEWER_WIDTH = 1024;
@@ -61,37 +70,38 @@ public class Viewer extends Application {
     private static final double Tile_Size = 80;
     private static final int X_Side = 232;   //(VIEWER_WIDTH - Tile_Size * 7)/2
     private static final int Y_Side = 104;   //(VIEWER_HEIGHT - Tile_Size * 7)/2
-    //bob
-    final private static MediaPlayer bgMusic
-            = new MediaPlayer(new Media(Viewer.class.getResource(URI_BASE + "BGM.mp3").toString()));
-    final private static int MUSIC_MODE = MediaPlayer.INDEFINITE;   //music mode
+
+    final private static MediaPlayer bgMusic        // Bob modified
+        = new MediaPlayer(new Media(Viewer.class.getResource(URI_BASE + "BGM.mp3").toString()));
+    final private static int MUSIC_MODE = MediaPlayer.INDEFINITE;  // Bob modified
 
     private final Group mainGroup = new Group();
-    private final Group boardSingleMode = new Group();
-    private final Group boardAiModeA = new Group();
-    private final Group boardAiModeP = new Group();
-    private final Group boardAiComponent = new Group();
-    private final Group root = new Group();
-    private final Group controls = new Group();
-    private final Group controlsAiP = new Group();  // Player to ai mode: player's control
-    private final Group controlsAiA = new Group();  // Player to ai mode: ai's control
-    private final Group controlsAi = new Group();
-    private final Group controlsAiComponent = new Group();
+    private final Group boardSingleMode = new Group(); // board group for single game mode
+    private final Group boardAI = new Group(); // AI in "Player to AI" or AI1 in "AI to AI" mode
+    private final Group boardPlayer = new Group();
+    private final Group boardAIComponent = new Group(); // AI2's board in "AI to AI" mode
+
+    private final Group controls = new Group(); // controls for "Single Mode" and "Debug Mode"
+    private final Group controlsPlayer = new Group();
+    private final Group controlsAI = new Group();  // AI's controls in "Player to AI"
+    private final Group controlsAIMode = new Group();   // AI1 in "AI to AI mode"
+    private final Group controlsAiComponent = new Group(); // AI2 in "AI to AI mode"
     private final Group pieces = new Group();
     private final Group placedPieces = new Group();
     private final Group aiPieces = new Group();
     private final Group generatingPieces = new Group();
-    private final Group rootAIMode = new Group();
-    private final Group aiBoardGroup = new Group();
-    private final Group aiComponent = new Group();
-    private Scene aiComponentScene = new Scene(aiComponent, VIEWER_WIDTH, VIEWER_HEIGHT);
-    private Scene aiBoardScene = new Scene(aiBoardGroup, VIEWER_WIDTH, VIEWER_HEIGHT);
-    private Scene mainScene = new Scene(mainGroup, VIEWER_WIDTH, VIEWER_HEIGHT);
-    private Scene singleModeScene = new Scene(root, VIEWER_WIDTH, VIEWER_HEIGHT);
-    private Scene aiModePlayerScene = new Scene(rootAIMode, VIEWER_WIDTH, VIEWER_HEIGHT);
+    private final Group rootSingle = new Group();
+    private final Group rootPlayer = new Group();
+    private final Group rootAI = new Group();   // main group for AI in "Player to AI" or AI1 in "AI to AI"
+    private final Group rootAIComponent = new Group();
+    private Scene sceneAIComponent = new Scene(rootAIComponent, VIEWER_WIDTH, VIEWER_HEIGHT);
+    private Scene sceneAI = new Scene(rootAI, VIEWER_WIDTH, VIEWER_HEIGHT);
+    private Scene sceneMain = new Scene(mainGroup, VIEWER_WIDTH, VIEWER_HEIGHT);
+    private Scene sceneSingle = new Scene(rootSingle, VIEWER_WIDTH, VIEWER_HEIGHT);
+    private Scene scenePlayer = new Scene(rootPlayer, VIEWER_WIDTH, VIEWER_HEIGHT);
     private TextField textField;
     private String boardString = "";
-    private String aiBoardString = "";
+    private String boardStringAI = "";
     private int sTileTotal = 0;
     private int sTilePerTurn = 0;
     private List<DraggablePiece> sTilesNotPlaced = new ArrayList<>();
@@ -99,13 +109,13 @@ public class Viewer extends Application {
     private String dicesAI = "";
     private int diceRollTimes = 0;
     private Text resultInfo = null;
-    private Text resultInfoAi = null;
+    private Text resultInfoAI = null;
     private Text turnInfo = null;
-    private Text turnInfoAi = null;
-    private List<String> sTilesAi = new ArrayList<>();
-    private List<String> sTileAiComponent = new ArrayList<>();
+    private Text turnInfoAI = null;
+    private List<String> sTilesAI = new ArrayList<>();
+    private List<String> sTileAIComponent = new ArrayList<>();
 
-    //bob
+    //Bob modified
     private ImageView mainBgImg;
     private ImageView boardBGImg;
     private ImageView aiGroupImg;
@@ -113,26 +123,26 @@ public class Viewer extends Application {
 
     /**
      * Draw a placement in the window, removing any previously drawn one
-     *
+     * @author Mingchao Sima, Frederick Li (modified)
      * @param placement A valid placement string
-     * @author Mingchao Sima, Frederick Li
+     *
      */
     public void makePlacement(String placement, boolean isAIMode, Group group) {
         // FIXME Task 4: implement the simple placement viewer
         group.getChildren().clear();
         for (int i = placement.length() - 5; i >= 0; i -= 5) {
             try {
-                ImageView tileImage = new ImageView(new Image(
-                        Viewer.class.getResource(URI_BASE + placement.substring(i, i + 2) + ".png").toString()));
+                ImageView tileImage = new ImageView(new Image(Viewer.class.getResource(
+                        URI_BASE + placement.substring(i, i + 2) + ".png").toString()));
                 tileImage.setFitWidth(Tile_Size);
                 tileImage.setFitHeight(Tile_Size);
                 tileImage.setLayoutY(Y_Side + (placement.charAt(i + 2) - 'A') * Tile_Size);
                 tileImage.setLayoutX(X_Side + (placement.charAt(i + 3) - '0') * Tile_Size);
                 int orientation = placement.charAt(i + 4) - '0';
-                if (orientation > 3) tileImage.setScaleX(-1);
+                if (orientation > 3) tileImage.setScaleX(-1);   // flip tile
                 tileImage.setRotate(orientation < 4 ? orientation * 90 : (orientation - 4) * 90);
                 group.getChildren().add(tileImage);
-            } catch (NullPointerException e) {  // invalid text
+            } catch (NullPointerException e) {  // invalid placement input
                 return;
             }
         }
@@ -143,7 +153,7 @@ public class Viewer extends Application {
 
 
     /**
-     * This method is help to draw 12 exits
+     * This method is used to draw 12 exits
      *
      * @param group a board Group which will add these exits
      * @author Mingchao Sima
@@ -198,9 +208,7 @@ public class Viewer extends Application {
     }
 
 
-    /**
-     * Generate 4 normal tiles with random dice roll and 6 special tiles
-     */
+    /* Generate 4 normal tiles with random dice roll and 6 special tiles */
     private void generateDicePieces(Group group) {
         if (!dices.isEmpty() && hasValidPlacement(false)) {
             Alert alert = new Alert(Alert.AlertType.WARNING,
@@ -209,31 +217,32 @@ public class Viewer extends Application {
             return;
         }
         diceRollTimes++;
+        dices = generateDiceRoll();
+
         if (diceRollTimes > 1) {
-            group.getChildren().remove(turnInfo);
+            group.getChildren().remove(turnInfo); // avoid adding the same node twice
         }
-        turnInfo = group == rootAIMode ?
+        turnInfo = group == rootPlayer ?
                 new Text(X_Side + 2 * Tile_Size, 60, "Turn: " + diceRollTimes) :
                 new Text(X_Side + Tile_Size, 60, "Turn: " + diceRollTimes);
-
         turnInfo.setFont(Font.font("Verdana", 20));
         group.getChildren().add(turnInfo);
-        sTilePerTurn = 0;
+
+        sTilePerTurn = 0;   // init special tiles used count
         generatingPieces.getChildren().clear();
-        dices = generateDiceRoll();
-        if (group == rootAIMode) {
-            aiBoardGroup.getChildren().remove(turnInfoAi);
-            turnInfoAi = new Text(X_Side + Tile_Size, 60, "Turn: " + diceRollTimes);
-            turnInfoAi.setFont(Font.font("Verdana", 20));
-            aiBoardGroup.getChildren().add(turnInfoAi);
+
+        if (group == rootPlayer) {  // Player to AI mode
+            rootAI.getChildren().remove(turnInfoAI);
+            turnInfoAI = new Text(X_Side + Tile_Size, 60, "Turn: " + diceRollTimes);
+            turnInfoAI.setFont(Font.font("Verdana", 20));
+            rootAI.getChildren().add(turnInfoAI);
             dicesAI = dices;
         }
-        String[] eachDice = new String[4];
-        for (int i = 0; i + 2 <= dices.length(); i += 2) {
-            eachDice[i / 2] = dices.substring(i, i + 2);
-        }
-        for (int i = 0; i < eachDice.length; i++) {
-            String dice = eachDice[i];
+
+        String[] tiles = splitString(dices, 2);
+
+        for (int i = 0; i < tiles.length; i++) {
+            String dice = tiles[i];
             Image tileImage = new Image(Viewer.class.getResource(
                     URI_BASE + dice + ".png").toString());
             DraggablePiece draggablePiece = new DraggablePiece(tileImage, dice);
@@ -270,7 +279,7 @@ public class Viewer extends Application {
 
 
     /**
-     * Construct a draggable piece for playing
+     * This class can enable users to drag or rotate tiles
      */
     class DraggablePiece extends ImageView {
         double homeX, homeY;
@@ -324,8 +333,8 @@ public class Viewer extends Application {
         }
 
         boolean isOnBoard() {
-            return this.getLayoutX() > X_Side - Tile_Size && this.getLayoutX() < VIEWER_WIDTH - X_Side
-                    && this.getLayoutY() > Y_Side - Tile_Size && this.getLayoutY() < VIEWER_HEIGHT - Y_Side;
+            return getLayoutX() > X_Side - Tile_Size && getLayoutX() < VIEWER_WIDTH - X_Side
+                    && getLayoutY() > Y_Side - Tile_Size && getLayoutY() < VIEWER_HEIGHT - Y_Side;
         }
 
         void setPosition() {
@@ -347,7 +356,7 @@ public class Viewer extends Application {
                 sTilesNotPlaced.remove(this);
             } else {
                 int i = dices.indexOf(name);
-                dices = dices.substring(0, i) + dices.substring(i + 2, dices.length());
+                dices = dices.substring(0, i) + dices.substring(i+2, dices.length()); // remove from dices
             }
         }
 
@@ -372,9 +381,7 @@ public class Viewer extends Application {
                     return false;
                 }
             }
-            if (isValidPlacementSequence(boardString + piecePlacement)
-                    && areNeighboursValid(boardString, piecePlacement)
-            ) {
+            if (isValidPlacementSequence(boardString + piecePlacement)) {
                 boardString += piecePlacement;
                 return true;
             } else {
@@ -418,19 +425,21 @@ public class Viewer extends Application {
 
 
     /**
-     * This method is used to control DraggablePiece :
-     * - Scroll on the tile: rotates 90 degrees clockwise
+     * This method is used to control DraggablePiece
+     * - Scroll on the tile: rotates 90 degrees clockwise each time
      * - Double click: flip the tile (if not flipped)
      * - Triple click: flip back (if flipped)
      * - Drag and release the tile on the board to place it
      */
     private void handlePiece(Group group) {
         BooleanProperty isDragging = new ReadOnlyBooleanWrapper(false);
+
         for (Node node : generatingPieces.getChildren()) {
             DraggablePiece piece = (DraggablePiece) node;
+
             piece.setOnScroll(e -> {
                 if (!isDragging.getValue()) {
-                    piece.rotate();
+                    piece.rotate(); // cannot rotate when dragging
                 }
             });
 
@@ -472,13 +481,13 @@ public class Viewer extends Application {
                     piece.snapToHome();
                 }
 
-                // In the last turn, check whether exits valid moves
+                // In the last turn, check valid moves and show the information if necessary
                 if (diceRollTimes == 7) {
                     if (!hasValidPlacement(true)) {
                         Alert alert = new Alert(Alert.AlertType.INFORMATION,
                                 "No more moves, press OK to get the score", ButtonType.OK);
                         alert.showAndWait();
-                        if (group == root) {
+                        if (group == rootSingle) {
                             int score = getAdvancedScore(boardString);
                             resultInfo = new Text(VIEWER_WIDTH / 2, 60,
                                     "Total Score: " + score);
@@ -486,21 +495,21 @@ public class Viewer extends Application {
                             generatingPieces.getChildren().clear();
                             group.getChildren().add(resultInfo);
                         } else {
-                            if (sTilesAi.size() == 3) {
-                                sTilesAi.clear();
+                            if (sTilesAI.size() == 3) {
+                                sTilesAI.clear();   // can only use at most 3 special tiles
                             }
-                            aiBoardString += generateBetterMove(aiBoardString, dicesAI, sTilesAi);
-                            makePlacement(aiBoardString, true, pieces);
-                            calculateScoreAiMode(group);
+                            boardStringAI += generateBetterMove(boardStringAI, dicesAI, sTilesAI);
+                            makePlacement(boardStringAI, true, pieces);
+                            calculateScore(group);
                         }
                     } else if (!hasValidPlacement(false)
                             && hasValidPlacement(true)) {
                         Alert alert = new Alert(Alert.AlertType.INFORMATION,
                                 "You can still place a special tile, do you want to end the game?",
-                                ButtonType.YES, ButtonType.NO);
+                                    ButtonType.YES, ButtonType.NO);
                         alert.showAndWait();
                         if (alert.getResult() == ButtonType.YES) {
-                            if (group == root) {
+                            if (group == rootSingle) {
                                 int score = getAdvancedScore(boardString);
                                 resultInfo = new Text(VIEWER_WIDTH / 2, (double) Y_Side / 2,
                                         "Advanced Score: " + score);
@@ -508,12 +517,12 @@ public class Viewer extends Application {
                                 generatingPieces.getChildren().clear();
                                 group.getChildren().add(resultInfo);
                             } else {
-                                if (sTilesAi.size() == 3) {
-                                    sTilesAi.clear();
+                                if (sTilesAI.size() == 3) {
+                                    sTilesAI.clear();
                                 }
-                                aiBoardString += generateBetterMove(aiBoardString, dicesAI, sTilesAi);
-                                makePlacement(aiBoardString, true, pieces);
-                                calculateScoreAiMode(group);
+                                boardStringAI += generateBetterMove(boardStringAI, dicesAI, sTilesAI);
+                                makePlacement(boardStringAI, true, pieces);
+                                calculateScore(group);
                             }
                         }
                     }
@@ -523,30 +532,32 @@ public class Viewer extends Application {
         }
     }
 
-    // Get the total result of Ai and player.
-    private void calculateScoreAiMode(Group group) {
+    /* Get the total result for Player to AI mode */
+    private void calculateScore(Group group) {
         int scorePlayer = getAdvancedScore(boardString);
-        int scoreAI = getAdvancedScore(aiBoardString);
+        int scoreAI = getAdvancedScore(boardStringAI);
         int errorPlayer = -countErrorsScore(boardString);
-        int errorAI = -countErrorsScore(aiBoardString);
-        String winner = "Winner: ";
+        int errorAI = -countErrorsScore(boardStringAI);
+
+        String winnerInfo = "Winner: ";
         if (scoreAI == scorePlayer) {
             if (errorPlayer < errorAI) {
-                winner += "Player!";
+                winnerInfo += "Player!";
             } else if (errorAI < errorPlayer) {
-                winner += "AI!";
+                winnerInfo += "AI!";
             } else {
-                winner = "Tie!";
+                winnerInfo = "Tie!";
             }
         } else if (scoreAI < scorePlayer) {
-            winner += "Player!";
+            winnerInfo += "Player!";
         } else {
-            winner += "AI!";
+            winnerInfo += "AI!";
         }
-        resultInfo = new Text(X_Side + 2 * Tile_Size, Y_Side / 3f, winner);
+
+        resultInfo = new Text(X_Side + 2 * Tile_Size, Y_Side / 3f, winnerInfo);
         resultInfo.setFont(Font.font("Verdana", 30));
         Label scoreP, scoreA;
-        if (!winner.equals("Tie")) {
+        if (!winnerInfo.equals("Tie")) {
             scoreP = new Label("Player's Score: " + scorePlayer);
             scoreA = new Label("AI's Score: " + scoreAI);
         } else {
@@ -559,11 +570,10 @@ public class Viewer extends Application {
         scores.setLayoutY(Y_Side / 3f);
         group.getChildren().addAll(scores, resultInfo);
         generatingPieces.getChildren().clear();
-
     }
 
 
-    /* This method can init all the static variables are needed */
+    /* This method can clear current game state for any modes */
     private void clearAll() {
         if (textField != null) {
             textField.clear();
@@ -574,42 +584,44 @@ public class Viewer extends Application {
         aiPieces.getChildren().clear();
         sTilesNotPlaced.clear();
         diceRollTimes = sTilePerTurn = sTileTotal = 0;
-        dices = dicesAI = boardString = aiBoardString = "";
-        resultInfo = resultInfoAi = null;
+        dices = dicesAI = boardString = boardStringAI = "";
+        resultInfo = resultInfoAI = null;
         pieces.getChildren().clear();
 
-        rootAIMode.getChildren().clear();
-        rootAIMode.getChildren().addAll(boardBGImg, boardAiModeP, generatingPieces, placedPieces);
+        rootPlayer.getChildren().clear();
+        rootPlayer.getChildren().addAll(boardBGImg, boardPlayer, generatingPieces, placedPieces);
 
-        aiBoardGroup.getChildren().clear();
-        aiBoardGroup.getChildren().addAll(aiGroupImg, boardAiModeA, controlsAiA, pieces);
+        rootAI.getChildren().clear();
+        rootAI.getChildren().addAll(aiGroupImg, boardAI, controlsAI, pieces);
 
-        aiComponent.getChildren().clear();
-        aiComponent.getChildren().addAll(aiComponentImg, boardAiComponent, controlsAiComponent, aiPieces);
+        rootAIComponent.getChildren().clear();
+        rootAIComponent.getChildren().addAll(aiComponentImg, boardAIComponent, controlsAiComponent, aiPieces);
 
-        root.getChildren().clear();
+        rootSingle.getChildren().clear();
 
-        //bob modified
-        root.getChildren().addAll(boardBGImg, boardSingleMode, controls, generatingPieces, placedPieces, pieces);
+        //Bob modified
+        rootSingle.getChildren().addAll(boardBGImg, boardSingleMode, controls, generatingPieces, placedPieces, pieces);
     }
 
 
     /**
-     * This method controls the main scene where user can switch to different modes
+     * This method controls the main scene where users can switch to different modes
      * modes:
-     * - single mode ("single game")
-     * - AI mode ("play with computer")
-     * - Debug mode ("debug mode")
+     * - Single mode ("Single game")
+     * - Player to AI mode ("Play with computer")
+     * - Debug mode ("Debug mode")
+     * - AI to AI mode ("AI to AI")
      *
      * @param primaryStage the main stage of the program
      */
     private void mainSceneSetting(Stage primaryStage) {
         initSTiles();
-        primaryStage.setScene(mainScene);
-        //bob
-        mainScene.getStylesheets().add(this.getClass().getResource("GameBoardBG.css").toExternalForm());
+        primaryStage.setScene(sceneMain);
 
-        mainScene.setOnKeyPressed(e -> {
+        sceneMain.getStylesheets().add(this.getClass().getResource(
+                "GameBoardBG.css").toExternalForm()); // Bob modified
+
+        sceneMain.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.Q) {
                 primaryStage.close();
             }
@@ -625,25 +637,25 @@ public class Viewer extends Application {
 
         Button single = new Button("Single game");
         single.setOnAction(e -> {
-            singleMode(primaryStage, true);
+            singleOrDebug(primaryStage, true);
 
         });
 
         Button debug = new Button("Debug mode");
         debug.setOnAction(e -> {
-            singleMode(primaryStage, false);
+            singleOrDebug(primaryStage, false);
         });
 
         Button computerMode = new Button("Play with computer");
         computerMode.setOnAction(e -> {
-            aiMode(primaryStage);
+            playWithAI(primaryStage);
         });
 
         Button aiComponentMode = new Button("AI to AI");
         aiComponentMode.setOnAction(e -> {
             aiToAiMode(primaryStage);
         });
-        //bob
+        // Bob modified
         bgMusic.setCycleCount(Viewer.MUSIC_MODE);
         bgMusic.play(); // play music
 
@@ -672,11 +684,11 @@ public class Viewer extends Application {
         aiComponentImg.setOpacity(0.45);
 
         vBox.getChildren().addAll(single, computerMode, debug, aiComponentMode);
-        //bob modified
+        // Bob modified
         mainGroup.getChildren().addAll(mainBgImg, vBox, title);
     }
 
-
+    /* Method for drawing board */
     private void drawBoard(Group group) {
         for (int i = 0; i < 8; i++) {
             Line row = new Line();
@@ -711,10 +723,10 @@ public class Viewer extends Application {
 
 
     /**
-     * Create different buttons of different scene
+     * Making and handle controls for all scenes except the main scene.
      *
-     * @param group      the Group which will add the buttons created
-     * @param isGameMode true if is in game mode (exclude debug)
+     * @param group      the control Group
+     * @param isGameMode gameMode is singleOrDebug or Player to AI mode
      * @param stage      primaryStage
      */
     private void makeControls(Group group, boolean isGameMode, Stage stage) {
@@ -733,7 +745,7 @@ public class Viewer extends Application {
                 Alert alert = new Alert(Alert.AlertType.WARNING, "7 rounds reached");
                 alert.showAndWait();
             } else {
-                if (group == rootAIMode && !dicesAI.isEmpty()) {
+                if (group == rootPlayer && !dicesAI.isEmpty()) {
                     Alert alert = new Alert(Alert.AlertType.WARNING,
                             "You must press 'Change to AI' before the next turn!");
                     alert.showAndWait();
@@ -748,21 +760,22 @@ public class Viewer extends Application {
             clearAll();
         });
 
+        // play move of AI and change board to AI (Player to AI mode)
         changeView.setOnAction(e -> {
             if (!dices.isEmpty() && hasValidPlacement(false)) {
                 Alert alert = new Alert(Alert.AlertType.WARNING,
                         "You must place regular tiles as many as you can!");
                 alert.showAndWait();
             } else {
-                stage.setScene(aiBoardScene);
+                stage.setScene(sceneAI);
                 if (!dicesAI.isEmpty()) {
-                    if (sTilesAi.size() == 3) {
-                        sTilesAi.clear();
+                    if (sTilesAI.size() == 3) {
+                        sTilesAI.clear();
                     }
-                    aiBoardString += generateBetterMove(aiBoardString, dicesAI, sTilesAi);
-                    makePlacement(aiBoardString, true, pieces);
+                    boardStringAI += generateBetterMove(boardStringAI, dicesAI, sTilesAI);
+                    makePlacement(boardStringAI, true, pieces);
                     if (diceRollTimes == 7) {
-                        calculateScoreAiMode(rootAIMode);
+                        calculateScore(rootPlayer);
                     }
                 }
             }
@@ -770,7 +783,7 @@ public class Viewer extends Application {
 
         newGame.setOnAction(e -> {
             clearAll();
-            aiMode(stage);
+            playWithAI(stage);
         });
 
         newGameAi.setOnAction(e -> {
@@ -779,15 +792,15 @@ public class Viewer extends Application {
         });
 
         switchBack.setOnAction(e -> {
-            stage.setScene(aiModePlayerScene);
+            stage.setScene(scenePlayer);
         });
 
         changeAi.setOnAction(e -> {
-            stage.setScene(aiComponentScene);
+            stage.setScene(sceneAIComponent);
         });
 
         changeAiBack.setOnAction(e -> {
-            stage.setScene(aiBoardScene);
+            stage.setScene(sceneAI);
         });
 
         newMove.setOnAction(e -> {
@@ -799,28 +812,29 @@ public class Viewer extends Application {
         buttonBox.setLayoutY(40);
         buttonBox.setSpacing(13);
 
-        // play with computer
-        if (group == rootAIMode) {
+        // Player to AI mode
+        if (group == rootPlayer) {
             buttonBox.getChildren().addAll(diceRoll, changeView, newGame);
-            controlsAiP.getChildren().add(buttonBox);
+            controlsPlayer.getChildren().add(buttonBox);
             switchBack.setLayoutX(40);
             switchBack.setLayoutY(40);
-            controlsAiA.getChildren().add(switchBack);
+            controlsAI.getChildren().add(switchBack);
         }
 
-        // ai to ai
-        if (group == aiBoardGroup) {
+        // AI to AI mode
+        if (group == rootAI) {
             buttonBox.getChildren().addAll(newMove, changeAi, newGameAi);
             changeAiBack.setLayoutX(40);
             changeAiBack.setLayoutY(40);
-            controlsAi.getChildren().add(buttonBox);
+            controlsAIMode.getChildren().add(buttonBox);
             controlsAiComponent.getChildren().add(changeAiBack);
         }
 
-        // debug or single game mode
-        if (group == root) {
+        // Debug or Single mode
+        if (group == rootSingle) {
             buttonBox.getChildren().addAll(diceRoll, clear);
-            HBox hb = new HBox();
+
+            HBox hb = new HBox();   // HBox collections for debug mode
             Label label1 = new Label("Placement:");
             textField = new TextField();
             textField.setPrefWidth(300);
@@ -837,140 +851,157 @@ public class Viewer extends Application {
             hb.setSpacing(20);
             hb.setLayoutX(130);
             hb.setLayoutY(VIEWER_HEIGHT - 50);
-            if (isGameMode) {
+
+            if (isGameMode) {       // single game mode
                 controls.getChildren().clear();
                 controls.getChildren().add(buttonBox);
-            } else {
+            } else {                // debug mode
                 controls.getChildren().clear();
                 controls.getChildren().add(hb);
             }
         }
     }
 
+    /* Init the special tiles collections (AI to AI mode) */
     private void initSTiles() {
-        sTilesAi.clear();
-        sTileAiComponent.clear();
+        sTilesAI.clear();
+        sTileAIComponent.clear();
         for (int i = 0; i < 6; i++) {
-            sTilesAi.add("S" + i);
-            sTileAiComponent.add("S" + i);
+            sTilesAI.add("S" + i);
+            sTileAIComponent.add("S" + i);
         }
     }
+
 
     /* This method is for ai to ai mode */
     private void playMoveAi() {
         diceRollTimes++;
-        if (diceRollTimes > 1 && diceRollTimes < 8) {
-            aiBoardGroup.getChildren().remove(turnInfo);
-            aiComponent.getChildren().remove(turnInfoAi);
+        if (diceRollTimes > 1 && diceRollTimes < 8) {       // prevent adding the same node twice
+            rootAI.getChildren().remove(turnInfo);
+            rootAIComponent.getChildren().remove(turnInfoAI);
         }
+
         if (diceRollTimes < 8) {
             dices = dicesAI = generateDiceRoll();
-            if (sTilesAi.size() == 3) {
-                sTilesAi.clear();
+            if (sTilesAI.size() == 3) {
+                sTilesAI.clear();
             }
-            if (sTileAiComponent.size() == 3) {
-                sTileAiComponent.clear();
+            if (sTileAIComponent.size() == 3) {
+                sTileAIComponent.clear();
             }
             boardString += generateMove(boardString, dices);    // AI 1
-            aiBoardString += generateBetterMove(aiBoardString, dicesAI, sTileAiComponent); // AI 2
+            boardStringAI += generateBetterMove(boardStringAI, dicesAI, sTileAIComponent); // AI 2
             makePlacement(boardString, false, pieces);
-            makePlacement(aiBoardString, false, aiPieces);
+            makePlacement(boardStringAI, false, aiPieces);
+
+            // update the turn information
             turnInfo = new Text(X_Side + 2 * Tile_Size, 60, "Turn: " + diceRollTimes);
-            turnInfoAi = new Text(X_Side + 2 * Tile_Size, 60, "Turn: " + diceRollTimes);
+            turnInfoAI = new Text(X_Side + 2 * Tile_Size, 60, "Turn: " + diceRollTimes);
             turnInfo.setFont(Font.font("Verdana", 20));
-            turnInfoAi.setFont(Font.font("Verdana", 20));
-            aiBoardGroup.getChildren().add(turnInfo);
-            aiComponent.getChildren().add(turnInfoAi);
+            turnInfoAI.setFont(Font.font("Verdana", 20));
+            rootAI.getChildren().add(turnInfo);
+            rootAIComponent.getChildren().add(turnInfoAI);
         }
-        if (diceRollTimes >= 7) {
-            if (resultInfo == null && resultInfoAi == null) {
+
+        if (diceRollTimes >= 7) {   // end the game and displays the result
+            if (resultInfo == null && resultInfoAI == null) {
                 int score1 = getAdvancedScore(boardString);
-                int score2 = getAdvancedScore(aiBoardString);
+                int score2 = getAdvancedScore(boardStringAI);
                 resultInfo = new Text(X_Side + 4 * Tile_Size, Y_Side / 2f,
                         "AI1 score: " + score1 + "  " + "AI2 score: " + score2);
                 resultInfo.setFont(Font.font("Verdana", 27));
-                resultInfoAi = new Text(X_Side + 4 * Tile_Size, Y_Side / 2f,
+                resultInfoAI = new Text(X_Side + 4 * Tile_Size, Y_Side / 2f,
                         "AI1 score: " + score1 + "  " + "AI2 score: " + score2);
-                resultInfoAi.setFont(Font.font("Verdana", 27));
-                aiBoardGroup.getChildren().add(resultInfo);
-                aiComponent.getChildren().add(resultInfoAi);
+                resultInfoAI.setFont(Font.font("Verdana", 27));
+                rootAI.getChildren().add(resultInfo);
+                rootAIComponent.getChildren().add(resultInfoAI);
             }
         }
     }
 
-    /* Init method for the aiMode */
-    private void aiMode(Stage stage) {
-        stage.setScene(aiModePlayerScene);
-        //bob
-        aiModePlayerScene.getStylesheets().add(this.getClass().getResource("GameBoardBG.css").toExternalForm());
-        aiBoardScene.getStylesheets().add(this.getClass().getResource("GameBoardBG.css").toExternalForm());
+    /* Init method for the Player to AI Mode */
+    private void playWithAI(Stage stage) {
+        stage.setScene(scenePlayer);
 
-        aiModePlayerScene.setOnKeyPressed(e -> {
+        scenePlayer.getStylesheets().add(this.getClass().getResource(
+                "GameBoardBG.css").toExternalForm());   // Bob
+        sceneAI.getStylesheets().add(this.getClass().getResource(
+                "GameBoardBG.css").toExternalForm());   // Bob
+
+        scenePlayer.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ESCAPE) {
                 clearAll();
-                stage.setScene(mainScene);
+                stage.setScene(sceneMain);
             }
         });
 
-        aiBoardScene.setOnKeyPressed(e -> {
+        sceneAI.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ESCAPE) {
                 clearAll();
-                stage.setScene(mainScene);
+                stage.setScene(sceneMain);
             }
         });
 
-        makeControls(rootAIMode, true, stage);
-        rootAIMode.getChildren().clear();
-        rootAIMode.getChildren().addAll(boardBGImg, boardAiModeP, controlsAiP, generatingPieces, placedPieces);
+        makeControls(rootPlayer, true, stage);
+        rootPlayer.getChildren().clear();
+        rootPlayer.getChildren().addAll(boardBGImg, boardPlayer, controlsPlayer, generatingPieces, placedPieces);
 
-        aiBoardGroup.getChildren().clear();
-        aiBoardGroup.getChildren().addAll(aiGroupImg, boardAiModeA, controlsAiA, pieces);
+        rootAI.getChildren().clear();
+        rootAI.getChildren().addAll(aiGroupImg, boardAI, controlsAI, pieces);
     }
 
-    /* Init method for the single game mode or debug mode */
-    private void singleMode(Stage stage, boolean isGameMode) {
-        stage.setScene(singleModeScene);
+    /**
+     * Init method for the Single and Debug mode.
+     * @param stage the main stage of the game
+     * @param isGameMode if true, it is singleOrDebug, otherwise debug mode
+     */
+    private void singleOrDebug(Stage stage, boolean isGameMode) {
+        stage.setScene(sceneSingle);
 
-        //bob
-        singleModeScene.getStylesheets().add(this.getClass().getResource("GameBoardBG.css").toExternalForm());
 
-        singleModeScene.setOnKeyPressed(e -> {
+        sceneSingle.getStylesheets().add(this.getClass().getResource(
+                "GameBoardBG.css").toExternalForm()); // Bob modified
+
+        sceneSingle.setOnKeyPressed(e -> {
            if (e.getCode() == KeyCode.ESCAPE) {
                 clearAll();
-                stage.setScene(mainScene);
+                stage.setScene(sceneMain);
             }
         });
 
-
-        makeControls(root, isGameMode, stage);
-        root.getChildren().clear();
-        root.getChildren().addAll(boardBGImg, boardSingleMode, controls, pieces, generatingPieces, placedPieces);
+        makeControls(rootSingle, isGameMode, stage);
+        rootSingle.getChildren().clear();
+        rootSingle.getChildren().addAll(boardBGImg, boardSingleMode, controls, pieces, generatingPieces, placedPieces);
     }
 
+    /* Init method for AI to AI mode */
     private void aiToAiMode(Stage stage) {
-        stage.setScene(aiBoardScene);
-        aiBoardScene.getStylesheets().add(this.getClass().getResource("GameBoardBG.css").toExternalForm());
-        aiComponentScene.getStylesheets().add(this.getClass().getResource("GameBoardBG.css").toExternalForm());
+        stage.setScene(sceneAI);
 
-        aiBoardScene.setOnKeyPressed(e -> {
+        sceneAI.getStylesheets().add(this.getClass().getResource(
+                "GameBoardBG.css").toExternalForm());
+        sceneAIComponent.getStylesheets().add(this.getClass().getResource(
+                "GameBoardBG.css").toExternalForm());
+
+        sceneAI.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ESCAPE) {
                 clearAll();
-                stage.setScene(mainScene);
+                stage.setScene(sceneMain);
             }
         });
 
-        aiComponentScene.setOnKeyPressed(e -> {
+        sceneAIComponent.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ESCAPE) {
                 clearAll();
-                stage.setScene(mainScene);
+                stage.setScene(sceneMain);
             }
         });
-        makeControls(aiBoardGroup, false, stage);
-        aiBoardGroup.getChildren().clear();
-        aiBoardGroup.getChildren().addAll(aiGroupImg, boardAiModeA, controlsAi, pieces);
+        makeControls(rootAI, false, stage);
+        rootAI.getChildren().clear();
+        rootAI.getChildren().addAll(aiGroupImg, boardAI, controlsAIMode, pieces);
 
-        aiComponent.getChildren().clear();
-        aiComponent.getChildren().addAll(aiComponentImg, boardAiComponent, controlsAiComponent, aiPieces);
+        rootAIComponent.getChildren().clear();
+        rootAIComponent.getChildren().addAll(aiComponentImg, boardAIComponent, controlsAiComponent, aiPieces);
 
     }
 
@@ -982,14 +1013,14 @@ public class Viewer extends Application {
         drawBoard(boardSingleMode);
         drawExits(boardSingleMode);
 
-        drawBoard(boardAiModeP);
-        drawExits(boardAiModeP);
+        drawBoard(boardPlayer);
+        drawExits(boardPlayer);
 
-        drawBoard(boardAiModeA);
-        drawExits(boardAiModeA);
+        drawBoard(boardAI);
+        drawExits(boardAI);
 
-        drawBoard(boardAiComponent);
-        drawExits(boardAiComponent);
+        drawBoard(boardAIComponent);
+        drawExits(boardAIComponent);
 
         mainSceneSetting(primaryStage);
         primaryStage.show();
