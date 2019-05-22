@@ -170,7 +170,7 @@ public class RailroadInk {
 
 
     /**
-     * This method is to check whether a tile's connection to the exit is invalid
+     * This method is to check whether a tile near the exit has valid connection to the exit.
      * @author Frederick Li
      * @param tilePlacement a string contains 5 characters
      * @return boolean
@@ -233,6 +233,7 @@ public class RailroadInk {
 
     /**
      * A method split a board string into an array of  tile placements
+     * @author Frederick Li
      * @param string a string needs to be split
      * @param len the length of substring
      * @return an array of tile placements
@@ -248,7 +249,7 @@ public class RailroadInk {
 
     /**
      * A helper method for isValidPlacementSequence that is to check
-     * whether all neighbouring tiles are validly connected for a new placement string
+     *      whether all neighbouring tiles are validly connected for a new placement string
      * @author Frederick Li
      * @param boardString the original game state
      * @param newPlacementString a sequence of new placements
@@ -440,9 +441,7 @@ public class RailroadInk {
             }
         }
 
-        int count = 0;
-        int sum = 0;
-        boolean flag = true;    // This flag determines whether this route can be expanded
+        int sum = 0;  // total score
 
         HashSet<String> connectedTiles = new HashSet<>();
         HashSet<String> route = new HashSet<>();
@@ -467,38 +466,35 @@ public class RailroadInk {
             for (String tileCollected : route) {
                 connectedTiles.addAll(getNeighbours(tileCollected, tiles));
             }
-
-            flag = false;
-
             // Update route and tiles
             route.addAll(connectedTiles);
             tiles.removeAll(connectedTiles);
+            connectedTiles.clear();
 
-            // Check whether the current route can be expanded
+            boolean flag = false;  // This flag determines whether this route can be expanded
+
             outerLoop:
             for (String t : tiles) {
-                for (String placed : connectedTiles) {
+                for (String placed : route) {
                     if (areConnectedNeighbours(t, placed)) {
                         flag = true;
                         break outerLoop;
                     }
                 }
             }
-            connectedTiles.clear();
 
-            // Count exits and start a new route
+            // Count exits or start a new route
             if (!flag) {
+                int exitsCount = 0;
                 for (String t : route) {
                     if (isExitConnected(t))
-                        count++;
+                        exitsCount++;
                 }
                 route.clear();
 
-                if (count == 12)
-                    sum += 45;
-                else if (count >= 2)
-                    sum += count * 4 - 4;
-                count = 0;
+                if (exitsCount == 12) {sum += 45;}
+                else if (exitsCount >= 2) {sum += exitsCount * 4 - 4;}
+                exitsCount = 0;
             }
         }
         return sum;
