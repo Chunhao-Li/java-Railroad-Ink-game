@@ -837,6 +837,7 @@ public class RailroadInk {
             }
         }
 
+        // init HashMap visited
         HashMap<String, Boolean> visited = new HashMap<>();
         for (String key : tilePlacements) {
             visited.put(key, false);
