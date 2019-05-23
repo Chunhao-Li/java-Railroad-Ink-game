@@ -11,9 +11,7 @@ Everyone: create application skeleton - meeting 14:00 23 Mar
 
 Haoyan liu: Finish Task 5 with Chunhao Li. Provide my own idea about the whole first Part. 
 
-Jane Bloggs: Task 4 getNeighbours - 23 Aug
-
-Erika Mustermann: Task 6 getViablePiecePlacements - 24 Aug (depends on Task 3)
+Mingchao Sima: Finished Task 4 and drawExits method improved by Chunhao Li.
 
 ## Week 6
 
@@ -28,9 +26,15 @@ Erika Mustermann: Task 6 getViablePiecePlacements - 24 Aug (depends on Task 3)
 ## Week 9
 Haoyan Liu: Complete task 7 . Create a version of Task10 with Mingchao Sima.  Add some comment in RailroadLink.
 
+Mingchao Sima: Help Haoyan Liu to complete and improve Task 10.
+
 ## Week 10
-Haoyan Liu: Improve javaFX based on the previous work of Chunhao li .
+Haoyan Liu: Improve javaFX based on the previous work of Chunhao li.
             Try task13 , upload a poor version . Add some comment on RailRoadLink.
             
+Mingchao Sima: Improved the countExitScore method based on the work of Chunhao Li.
+            
 ## Week 11
-Haoyan Liu: Review the whole assignment. Do some simple adjustment .
+Haoyan Liu: Review the whole assignment. Do some simple adjustment.
+
+Mingchao Sima: Discussed the questions in the whole assignment 2 with all and the presentation.
