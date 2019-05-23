@@ -6,4 +6,4 @@ We declare that the work we have submitted for Stage G of this assignment and al
 
 * ....
 
-Signed: Chunhao Li (u6527752), Haoyan Liu (u6720989), and Sue Black (u0123456)
+Signed: Chunhao Li (u6527752), Haoyan Liu (u6720989), and Mingchao Sima (u6502811)

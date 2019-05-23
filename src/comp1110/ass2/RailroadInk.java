@@ -998,17 +998,17 @@ public class RailroadInk {
 
     private static int getBoardScore(String grid, int placedTile) {
         int[][] boardScore = {{10, 10, 10, 10, 10, 10, 10},
-                {10, 20, 20, 20, 20, 20, 10},
-                {10, 20, 50, 50, 50, 20, 10},
-                {10, 20, 50, 50, 50, 20, 10},
-                {10, 20, 50, 50, 50, 20, 10},
-                {10, 20, 20, 20, 20, 20, 10},
-                {10, 10, 10, 10, 10, 10, 10}};
+                            {10, 20, 20, 20, 20, 20, 10},
+                            {10, 20, 50, 50, 50, 20, 10},
+                            {10, 20, 50, 50, 50, 20, 10},
+                            {10, 20, 50, 50, 50, 20, 10},
+                            {10, 20, 20, 20, 20, 20, 10},
+                            {10, 10, 10, 10, 10, 10, 10}};
 
         if (placedTile < 20) {
             return boardScore[grid.charAt(0) - 'A'][grid.charAt(1) - '0'];
         } else {
-            return boardScore[grid.charAt(0) - 'A'][grid.charAt(1) - '0'];
+            return 60 - boardScore[grid.charAt(0) - 'A'][grid.charAt(1) - '0'];
         }
     }
 
