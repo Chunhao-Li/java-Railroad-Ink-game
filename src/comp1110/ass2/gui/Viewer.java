@@ -51,7 +51,12 @@ import java.util.Set;
  * -    Most of the features are the same as the Single Mode.
  * -    "Change to AI" button can enable AI to play moves.
  * -    In every turn except turn 7, users need to press "Change to AI" which enables AI to make a move.
- * -    Users can press "New Game" to end the current game and start a new one.
+ * -    Users can int score = getAdvancedScore(boardString);
+                            resultInfo = new Text(VIEWER_WIDTH / 2, 60,
+                                    "Total Score: " + score);
+                            resultInfo.setFont(Font.font("Verdana", 20));
+                            generatingPieces.getChildren().clear();
+                            group.getChildren().add(resultInfo); press "New Game" to end the current game and start a new one.
  * -    Users can press "Change to AI" to change the board to AI's, and "Go back to player" to switch back
  * -    All other rules are in README.md.
  * - Debug Mode:
@@ -438,7 +443,7 @@ public class Viewer extends Application {
             DraggablePiece piece = (DraggablePiece) node;
 
             piece.setOnScroll(e -> {    // scroll to change orientation
-                if (!isDragging.getValue()) {
+                if (!isDragging.getValue() && Math.abs(e.getDeltaY()) > 30) {
                     piece.rotate(); // cannot rotate when dragging
                 }
                 e.consume();
@@ -742,9 +747,18 @@ public class Viewer extends Application {
         Button newMove = new Button("New Turn");
 
         diceRoll.setOnAction(e -> {
-            if (diceRollTimes == 7) {
-                Alert alert = new Alert(Alert.AlertType.WARNING, "7 rounds reached");
-                alert.showAndWait();
+            if (diceRollTimes >= 7) {
+                if (group == rootSingle && !generatingPieces.getChildren().isEmpty()) {
+                    int score = getAdvancedScore(boardString);
+                    resultInfo = new Text(VIEWER_WIDTH / 2, 60,
+                            "Total Score: " + score);
+                    resultInfo.setFont(Font.font("Verdana", 20));
+                    generatingPieces.getChildren().clear();
+                    group.getChildren().add(resultInfo);
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.WARNING, "7 rounds reached");
+                    alert.showAndWait();
+                }
             } else {
                 if (group == rootPlayer && !dicesAI.isEmpty()) {
                     Alert alert = new Alert(Alert.AlertType.WARNING,

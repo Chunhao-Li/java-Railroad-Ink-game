@@ -1,3 +1,6 @@
+/** Add background image and change button style
+* @author Bob
+*/
 .root {
     -fx-background-image: url("./assets/icon.png");
 }
