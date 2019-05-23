@@ -612,7 +612,7 @@ public class RailroadInk {
 
 
     /**
-     * Get all available adjacent grids as well as .
+     * Get all available adjacent grids.
      * @author Frederick Li
      * @param boardString a sequence of current game state
      * @return a Set of String which contains all available grids
@@ -625,8 +625,8 @@ public class RailroadInk {
 
         for (int i = 0; i+5 <= boardString.length(); i+=5) {
             String grid = boardString.substring(i+2, i+4);
-            availableExits.removeIf(g -> g.equals(grid));   // remove exit's positions if placed
-            placedTiles.add(boardString.substring(i, i+5));
+            availableExits.removeIf(g -> g.equals(grid));   // remove exit's grid if placed
+            placedTiles.add(boardString.substring(i, i+5)); // add all unused exit together
         }
         HashSet<String> availableGrids = new HashSet<>(availableExits);
         for (String tile: placedTiles) {
