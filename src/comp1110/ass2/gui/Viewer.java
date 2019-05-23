@@ -750,11 +750,10 @@ public class Viewer extends Application {
             if (diceRollTimes >= 7) {
                 if (group == rootSingle && !generatingPieces.getChildren().isEmpty()) {
                     int score = getAdvancedScore(boardString);
-                    resultInfo = new Text(VIEWER_WIDTH / 2, 60,
-                            "Total Score: " + score);
+                    resultInfo = new Text(VIEWER_WIDTH / 2, 60, "Total Score: " + score);
                     resultInfo.setFont(Font.font("Verdana", 20));
-                    generatingPieces.getChildren().clear();
                     group.getChildren().add(resultInfo);
+                    generatingPieces.getChildren().clear();
                 } else {
                     Alert alert = new Alert(Alert.AlertType.WARNING, "7 rounds reached");
                     alert.showAndWait();
