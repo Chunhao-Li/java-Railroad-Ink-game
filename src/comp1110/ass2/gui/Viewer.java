@@ -437,13 +437,14 @@ public class Viewer extends Application {
         for (Node node : generatingPieces.getChildren()) {
             DraggablePiece piece = (DraggablePiece) node;
 
-            piece.setOnScroll(e -> {
+            piece.setOnScroll(e -> {    // scroll to change orientation
                 if (!isDragging.getValue()) {
                     piece.rotate(); // cannot rotate when dragging
                 }
+                e.consume();
             });
 
-            piece.setOnMouseClicked(e -> {
+            piece.setOnMouseClicked(e -> {  // double or triple click to flip
                 switch (e.getClickCount()) {
                     case 2:
                         piece.flipped();
