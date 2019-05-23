@@ -358,21 +358,23 @@ public class RailroadInk {
      */
     public static String generateDiceRoll() {
         // FIXME Task 7: generate a dice roll
-        Random random = new Random();
-        String [] rolls={"AAAB", "ABAA", "AABA", "BAAA"};
-        String roll = rolls[0];
-        String result = "";
-        for (int i = 0; i <4; i++) {
-            char dice = roll.charAt(i);
-            result = result + roll.charAt(i);
+        Random r = new Random();
+        String [] possibleRole={"AAAB", "ABAA", "AABA", "BAAA"};
+        String diceroll = possibleRole[0];
+        String output ="";
+        int i=0;
+        while (i<4) {
+            char dice = diceroll.charAt(i);
+            output = output + diceroll.charAt(i);
             if (dice == 'A') {
-                result = result + random.nextInt(6);
+                output +=  r.nextInt(6);
             }
             if (dice=='B') {
-                result = result + random.nextInt(3);
+                output+=  r.nextInt(3);
             }
+            i=i+1;
         }
-        return result;
+        return output;
     }
 
 
